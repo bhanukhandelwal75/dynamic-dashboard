@@ -3,6 +3,7 @@ import { Chart } from 'chart.js/auto';
 import { useData } from '../context/DataContext';
 import KpiCard from '../components/KpiCard';
 import ChartCard from '../components/ChartCard';
+import ExportButton from '../components/ExportButton';
 import { getMonthKey } from '../utils/dataUtils';
 
 function destroyChart(chartRef) {
@@ -153,13 +154,19 @@ export default function Productivity({ onUploadClick }) {
   const ageStyle = (v) => v === null ? '' : v > 30 ? { color: '#d93025', fontWeight: 700 } : v > 14 ? { color: '#f59e0b', fontWeight: 600 } : { color: '#0f9d58', fontWeight: 600 };
 
   return (
-    <div className="page">
+    <div className="page" id="export-productivity">
       <div className="topbar">
         <div><h1>Productivity Analytics</h1><p>Analyst-level performance &amp; closure rates</p></div>
         <div className="topbar-right">
           <button className={`upload-btn${hasData ? ' loaded' : ''}`} onClick={onUploadClick}>
             {hasData ? `✅ ${fileName.length > 22 ? fileName.slice(0, 20) + '…' : fileName}` : '📂 Upload CDR File'}
           </button>
+          <ExportButton
+            targetId="export-productivity"
+            pageTitle="Productivity Analytics"
+            subTitle={hasData ? `${d.length.toLocaleString()} cases · ${fileName}` : ''}
+            disabled={!hasData}
+          />
         </div>
       </div>
 

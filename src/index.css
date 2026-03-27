@@ -373,3 +373,48 @@ tbody tr:hover td { background: #f7f9fc; }
 .page-btn:hover { border-color: var(--blue); color: var(--blue); }
 .page-btn:disabled { opacity: 0.4; cursor: default; }
 .page-label { padding: 4px 10px; background: var(--surface2); border-radius: 6px; font-size: 11px; }
+
+/* ═══ EXPORT PDF BUTTON ═══ */
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.export-btn:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--red);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217,48,37,0.15);
+}
+.export-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.export-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══ EXPORT CONTENT WRAPPER ═══ */
+.export-content {
+  /* This wrapper is what gets captured by html2canvas */
+  background: var(--bg);
+}

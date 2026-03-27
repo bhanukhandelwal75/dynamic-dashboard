@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Chart } from 'chart.js/auto';
 import { useData } from '../context/DataContext';
 import ChartCard from '../components/ChartCard';
+import ExportButton from '../components/ExportButton';
 import { getMonthKey } from '../utils/dataUtils';
 
 function destroyChart(ref) {
@@ -156,9 +157,17 @@ export default function Ageing() {
   };
 
   return (
-    <div className="page">
+    <div className="page" id="export-ageing">
       <div className="topbar">
         <div><h1>Ageing Analysis</h1><p>Open case ageing buckets &amp; TAT breach analysis</p></div>
+        <div className="topbar-right">
+          <ExportButton
+            targetId="export-ageing"
+            pageTitle="Ageing Analysis"
+            subTitle={hasData ? `${d.length.toLocaleString()} cases loaded` : ''}
+            disabled={!hasData}
+          />
+        </div>
       </div>
 
       {!hasData && <div className="empty-state" style={{ marginTop: 60 }}><div className="ei">⏱</div><p>Upload a CDR file to view ageing analysis</p></div>}

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import Pagination from '../components/Pagination';
+import ExportButton from '../components/ExportButton';
 import { getMonthKey } from '../utils/dataUtils';
 
 const PAGE_SIZE = 15;
@@ -53,13 +54,19 @@ export default function TeamView({ onUploadClick }) {
   const hasData = rawData.length > 0;
 
   return (
-    <div className="page">
+    <div className="page" id="export-team">
       <div className="topbar">
         <div><h1>Team View</h1><p>Workload balance, heatmap &amp; case explorer</p></div>
         <div className="topbar-right">
           <button className={`upload-btn${hasData ? ' loaded' : ''}`} onClick={onUploadClick}>
             {hasData ? `✅ ${fileName.length > 22 ? fileName.slice(0, 20) + '…' : fileName}` : '📂 Upload CDR File'}
           </button>
+          <ExportButton
+            targetId="export-team"
+            pageTitle="Team View"
+            subTitle={hasData ? `${rawData.length.toLocaleString()} cases · ${fileName}` : ''}
+            disabled={!hasData}
+          />
         </div>
       </div>
 

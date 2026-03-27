@@ -4,6 +4,7 @@ import { useData } from '../context/DataContext';
 import KpiCard from '../components/KpiCard';
 import ChartCard from '../components/ChartCard';
 import FilterBar from '../components/FilterBar';
+import ExportButton from '../components/ExportButton';
 import { getMonthKey } from '../utils/dataUtils';
 
 // ─── Chart helpers ───────────────────────────────────
@@ -191,7 +192,7 @@ export default function Dashboard({ onUploadClick }) {
   const hasData = rawData.length > 0;
 
   return (
-    <div className="page">
+    <div className="page" id="export-dashboard">
       {/* Top bar */}
       <div className="topbar">
         <div>
@@ -203,6 +204,12 @@ export default function Dashboard({ onUploadClick }) {
             {hasData ? `✅ ${fileName.length > 22 ? fileName.slice(0, 20) + '…' : fileName}` : '📂 Upload CDR File'}
           </button>
           <div className="date-badge">{dateBadge}</div>
+          <ExportButton
+            targetId="export-dashboard"
+            pageTitle="Executive Dashboard"
+            subTitle={hasData ? `${rawData.length.toLocaleString()} cases · ${fileName}` : ''}
+            disabled={!hasData}
+          />
         </div>
       </div>
 

@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Panel – AML Operations</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f2f5;--surface:#ffffff;--surface2:#f7f8fc;--border:#e4e7ed;--border2:#d0d5dd;
+  --blue:#1a73e8;--blue2:#1557b0;--blue-light:#e8f0fe;
+  --green:#0f9d58;--green-light:#e6f4ea;
+  --red:#d93025;--red-light:#fce8e6;
+  --amber:#f59e0b;--amber-light:#fffbeb;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+  --teal:#0891b2;--teal-light:#e0f2fe;
+  --text:#1a1a2e;--text2:#4a5568;--text3:#8896ab;
+  --shadow:0 1px 4px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.06);
+  --shadow2:0 2px 8px rgba(0,0,0,0.12),0 8px 32px rgba(0,0,0,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ═══ LOGIN ═══ */
+#loginScreen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:#ffffff;
+}
+.login-wrap{width:460px;padding:40px 48px}
+.login-header{margin-bottom:32px}
+.login-header h1{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-0.03em;margin-bottom:4px}
+.login-header .sub{font-size:14px;color:var(--blue);font-weight:600}
+.login-divider{height:1px;background:var(--border);margin:24px 0}
+.lfield{margin-bottom:16px}
+.lfield label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:7px;letter-spacing:0.01em}
+.lfield input{
+  width:100%;border:1.5px solid var(--border);border-radius:8px;
+  padding:13px 15px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
+  outline:none;transition:all 0.2s;background:#fff;
+}
+.lfield input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,115,232,0.12)}
+.lfield input.error{border-color:var(--red)}
+.login-btn{
+  width:100%;background:var(--blue);border:none;border-radius:8px;
+  padding:14px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;letter-spacing:0.01em;
+}
+.login-btn:hover{background:var(--blue2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,115,232,0.35)}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;display:none;text-align:center;padding:8px 12px;background:var(--red-light);border-radius:6px;border-left:3px solid var(--red)}
+.cred-box{margin-top:24px;padding:14px 16px;background:var(--blue-light);border-radius:8px;border-left:3px solid var(--blue)}
+.cred-box .ct{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.cred-row{font-size:12px;color:var(--text2);line-height:1.9;font-family:'JetBrains Mono',monospace}
+.cred-row span{color:var(--blue);font-weight:600}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:40px}
+.pass-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text3);font-size:16px;background:none;border:none;outline:none}
+
+/* ═══ APP ═══ */
+#app{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{
+  width:230px;background:#fff;border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:200;
+}
+.sb-brand{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.sb-logo{width:36px;height:36px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sb-title{font-size:14px;font-weight:800;color:var(--text);letter-spacing:-0.02em}
+.sb-title span{color:var(--blue)}
+.sb-subtitle{font-size:10px;color:var(--text3);font-weight:500}
+.nav-grp{padding:16px 12px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;margin:1px 8px;
+  cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;
+  border-radius:8px;transition:all 0.15s;position:relative;
+}
+.nav-item:hover{background:var(--blue-light);color:var(--blue)}
+.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--blue);border-radius:0 3px 3px 0}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info span{display:block;font-size:12px;font-weight:600;color:var(--text)}
+.user-info small{font-size:10px;color:var(--text3)}
+.logout-btn{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;border-radius:5px;transition:color 0.2s}
+.logout-btn:hover{color:var(--red)}
+.main{margin-left:230px;flex:1;padding:24px 28px;min-height:100vh}
+.page{display:none}
+.page.active{display:block;animation:pgIn 0.25s ease}
+@keyframes pgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ═══ TOP BAR ═══ */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.topbar h1{font-size:20px;font-weight:800;letter-spacing:-0.025em;margin-bottom:2px}
+.topbar p{font-size:12px;color:var(--text3)}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.upload-btn{
+  display:flex;align-items:center;gap:7px;background:var(--blue);border:none;
+  border-radius:8px;padding:9px 16px;cursor:pointer;font-size:12px;color:#fff;font-weight:600;
+  font-family:'Inter',sans-serif;transition:all 0.2s;
+}
+.upload-btn:hover{background:var(--blue2);transform:translateY(-1px)}
+.upload-btn.loaded{background:var(--green);color:#fff}
+.date-badge{background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:11.5px;color:var(--text2);font-weight:500}
+
+/* FILTERS */
+.filters-bar{
+  display:flex;align-items:center;gap:8px;margin-bottom:20px;
+  background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex-wrap:wrap;
+  box-shadow:var(--shadow);
+}
+.filter-label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-right:4px}
+.filter-select{
+  background:#fff;border:1.5px solid var(--border);border-radius:7px;
+  padding:6px 10px;color:var(--text);font-family:'Inter',sans-serif;
+  font-size:12px;outline:none;cursor:pointer;transition:border-color 0.2s;min-width:130px;
+}
+.filter-select:focus{border-color:var(--blue)}
+.filter-div{width:1px;height:18px;background:var(--border);flex-shrink:0}
+.reset-btn{background:none;border:1.5px solid var(--border);border-radius:7px;padding:6px 12px;color:var(--text2);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;font-weight:600}
+.reset-btn:hover{border-color:var(--blue);color:var(--blue)}
+.filter-count{margin-left:auto;font-size:11px;color:var(--text3);font-weight:500}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;gap:12px;margin-bottom:20px}
+.k6{grid-template-columns:repeat(6,1fr)}
+.k4{grid-template-columns:repeat(4,1fr)}
+.k3{grid-template-columns:repeat(3,1fr)}
+.kpi{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:18px 18px 16px;position:relative;overflow:hidden;
+  box-shadow:var(--shadow);transition:all 0.2s;
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
+.kpi-top-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi-label{font-size:10.5px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;line-height:1;margin-bottom:5px}
+.kpi-sub{font-size:11px;color:var(--text3);line-height:1.4}
+.kpi-icon{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.blue-v .kpi-top-bar{background:var(--blue)}
+.blue-v .kpi-val{color:var(--blue)}
+.blue-v .kpi-icon{background:var(--blue-light)}
+.green-v .kpi-top-bar{background:var(--green)}
+.green-v .kpi-val{color:var(--green)}
+.green-v .kpi-icon{background:var(--green-light)}
+.red-v .kpi-top-bar{background:var(--red)}
+.red-v .kpi-val{color:var(--red)}
+.red-v .kpi-icon{background:var(--red-light)}
+.amber-v .kpi-top-bar{background:var(--amber)}
+.amber-v .kpi-val{color:var(--amber)}
+.amber-v .kpi-icon{background:var(--amber-light)}
+.purple-v .kpi-top-bar{background:var(--purple)}
+.purple-v .kpi-val{color:var(--purple)}
+.purple-v .kpi-icon{background:var(--purple-light)}
+.teal-v .kpi-top-bar{background:var(--teal)}
+.teal-v .kpi-val{color:var(--teal)}
+.teal-v .kpi-icon{background:var(--teal-light)}
+
+/* SECTION LABEL */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:12px;margin-top:4px;display:flex;align-items:center;gap:8px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* CHART CARDS */
+.chart-row{display:grid;gap:14px;margin-bottom:16px}
+.r2{grid-template-columns:1fr 1fr}
+.r3{grid-template-columns:2fr 1fr 1fr}
+.r21{grid-template-columns:2fr 1fr}
+.r12{grid-template-columns:1fr 2fr}
+.r32{grid-template-columns:3fr 2fr}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.card-sub{font-size:11px;color:var(--text3)}
+.badge{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:700;white-space:nowrap}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-amber{background:var(--amber-light);color:#92400e}
+.badge-red{background:var(--red-light);color:var(--red)}
+.chart-wrap{position:relative}
+.h160{height:160px}
+.h200{height:200px}
+.h220{height:220px}
+.h240{height:240px}
+.h260{height:260px}
+.h300{height:300px}
+.h340{height:340px}
+
+/* TABLES */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--surface2);padding:9px 13px;text-align:left;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:9px 13px;border-bottom:1px solid rgba(0,0,0,0.04);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#f7f9fc}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.pill-green{background:var(--green-light);color:var(--green)}
+.pill-red{background:var(--red-light);color:var(--red)}
+.pill-amber{background:var(--amber-light);color:#92400e}
+.pill-blue{background:var(--blue-light);color:var(--blue)}
+.pill-purple{background:var(--purple-light);color:var(--purple)}
+.pill-teal{background:var(--teal-light);color:var(--teal)}
+.pill-gray{background:#f1f3f5;color:var(--text2)}
+.prog-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;width:80px;display:inline-block;vertical-align:middle;margin-right:6px}
+.prog-fill{height:100%;border-radius:3px}
+.empty-state{text-align:center;padding:40px;color:var(--text3)}
+.empty-state .ei{font-size:36px;margin-bottom:8px;opacity:0.5}
+.empty-state p{font-size:12px;max-width:240px;margin:0 auto}
+
+/* AGEING SPECIAL TABLE */
+.ageing-table thead th{background:#f0f4ff}
+.tat-breach{background:#fff5f5 !important}
+
+/* HEATMAP */
+.hm-cell{border-radius:5px;height:28px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:transform 0.15s;cursor:default}
+.hm-cell:hover{transform:scale(1.06)}
+
+/* AI CHAT */
+.chat-bubble-ai{background:var(--surface2);border:1px solid var(--border);border-radius:4px 12px 12px 12px;padding:10px 14px;font-size:12.5px;line-height:1.6;max-width:85%}
+.chat-bubble-user{background:var(--blue);color:#fff;border-radius:12px 4px 12px 12px;padding:10px 14px;font-size:12.5px;line-height:1.6;max-width:85%}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-header">
+      <h1>Sign In</h1>
+      <div class="sub">Login to Dashboard Panel</div>
+    </div>
+    <div class="login-divider"></div>
+    <div class="lfield">
+      <label>USERNAME / EMAIL ID</label>
+      <input type="text" id="loginId" placeholder="Enter your ID" autocomplete="username" id="loginId">
+    </div>
+    <div class="lfield">
+      <label>PASSWORD</label>
+      <div class="pass-wrap">
+        <input type="password" id="loginPass" placeholder="Enter Password" autocomplete="current-password">
+        <button class="pass-eye" onclick="togglePass()">👁</button>
+      </div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔒 Sign In Securely &nbsp;›</button>
+    <div class="login-err" id="loginError">⚠ Invalid credentials. Please check and try again.</div>
+
+      
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">📊</div>
+      <div>
+        <div class="sb-title">Dashboard <span>Panel</span></div>
+        <div class="sb-subtitle">AML Operations</div>
+      </div>
+    </div>
+    <div class="nav-grp">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">🏠</span> Executive Dashboard</div>
+    <div class="nav-item" onclick="showPage('productivity',this)"><span class="nav-icon">📈</span> Productivity</div>
+    <div class="nav-item" onclick="showPage('ageing',this)"><span class="nav-icon">⏱</span> Ageing Analysis</div>
+    <div class="nav-item" onclick="showPage('team',this)"><span class="nav-icon">👥</span> Team View</div>
+    <div class="nav-item" onclick="showPage('aichat',this)"><span class="nav-icon">🤖</span> AI Chat</div>
+    <div class="sb-bottom">
+      <div class="user-card">
+        <div class="avatar" id="sbAvatar">A</div>
+        <div class="user-info"><span id="sbName">User</span><small id="sbRole">Member</small></div>
+        <button class="logout-btn" onclick="doLogout()" title="Sign out">⏻</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <input type="file" id="mainFileInput" accept=".csv,.xls,.xlsx" style="display:none" onchange="handleUpload(this.files[0])">
+
+    <!-- ══ EXECUTIVE DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="topbar">
+        <div>
+          <h1>Executive Dashboard</h1>
+          <p id="dashSub">Upload CDR Excel/CSV to begin analysis</p>
+        </div>
+        <div class="topbar-right">
+          <div id="sheetWrap" style="display:none;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--text3)">Sheet:</span>
+            <select class="filter-select" id="sheetSel" onchange="loadSheetIdx()"></select>
+          </div>
+          <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('mainFileInput').click()">📂 Upload CDR File</button>
+          <div class="date-badge" id="dateBadge"></div>
+        </div>
+      </div>
+
+      <div class="filters-bar" id="filtersBar" style="display:none">
+        <span class="filter-label">🔍 Filter</span>
+        <select class="filter-select" id="fMonth" onchange="applyFilters()"><option value="">All Months</option></select>
+        <div class="filter-div"></div>
+        <select class="filter-select" id="fUser" onchange="applyFilters()"><option value="">All Analysts</option></select>
+        <div class="filter-div"></div>
+        <select class="filter-select" id="fLevel" onchange="applyFilters()"><option value="">All Levels</option></select>
+        <div class="filter-div"></div>
+        <select class="filter-select" id="fStatus" onchange="applyFilters()"><option value="">All Status</option></select>
+        <button class="reset-btn" onclick="resetFilters()">↺ Reset</button>
+        <span class="filter-count" id="filterCount"></span>
+      </div>
+
+      <!-- KPI ROW 1 -->
+      <div class="kpi-grid k6" id="kpiRow1">
+        <div class="kpi blue-v"><div class="kpi-top-bar"></div><div class="kpi-icon">📋</div><div class="kpi-label">Total Cases</div><div class="kpi-val" id="kTotal">—</div><div class="kpi-sub">All loaded records</div></div>
+        <div class="kpi green-v"><div class="kpi-top-bar"></div><div class="kpi-icon">✅</div><div class="kpi-label">Closed Cases</div><div class="kpi-val" id="kClosed">—</div><div class="kpi-sub" id="kClosedPct">—</div></div>
+        <div class="kpi red-v"><div class="kpi-top-bar"></div><div class="kpi-icon">🔓</div><div class="kpi-label">Open Cases</div><div class="kpi-val" id="kOpen">—</div><div class="kpi-sub" id="kOpenPct">—</div></div>
+        <div class="kpi amber-v"><div class="kpi-top-bar"></div><div class="kpi-icon">👥</div><div class="kpi-label">Active Analysts</div><div class="kpi-val" id="kAnalysts">—</div><div class="kpi-sub">Unique users</div></div>
+        <div class="kpi purple-v"><div class="kpi-top-bar"></div><div class="kpi-icon">⚡</div><div class="kpi-label">% L2 to L3</div><div class="kpi-val" id="kL2L3">—</div><div class="kpi-sub" id="kL2L3sub">L2→L3 escalation rate</div></div>
+        <div class="kpi teal-v"><div class="kpi-top-bar"></div><div class="kpi-icon">⏱</div><div class="kpi-label">Avg Ageing (days)</div><div class="kpi-val" id="kAvgAge">—</div><div class="kpi-sub">Created → Last Action</div></div>
+      </div>
+
+      <!-- KPI ROW 2 -->
+      <div class="kpi-grid k4" style="margin-bottom:20px" id="kpiRow2">
+        <div class="kpi blue-v"><div class="kpi-top-bar"></div><div class="kpi-icon">🎯</div><div class="kpi-label">L1 Cases</div><div class="kpi-val" id="kL1">—</div><div class="kpi-sub" id="kL1sub">—</div></div>
+        <div class="kpi amber-v"><div class="kpi-top-bar"></div><div class="kpi-icon">📊</div><div class="kpi-label">L2 Cases</div><div class="kpi-val" id="kL2">—</div><div class="kpi-sub" id="kL2sub">—</div></div>
+        <div class="kpi purple-v"><div class="kpi-top-bar"></div><div class="kpi-icon">🔺</div><div class="kpi-label">L3 Cases</div><div class="kpi-val" id="kL3">—</div><div class="kpi-sub" id="kL3sub">—</div></div>
+        <div class="kpi green-v"><div class="kpi-top-bar"></div><div class="kpi-icon">📅</div><div class="kpi-label">Avg Cases/Analyst</div><div class="kpi-val" id="kAvgCases">—</div><div class="kpi-sub">Per analyst total</div></div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="sec-label">Case Overview</div>
+      <div class="chart-row r3" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Cases Closed & Avg Productivity by Month</div><div class="card-sub">L1 / L2 / L3 by Month + Avg Productivity line</div></div><span class="badge badge-blue" id="badgeTrend">—</span></div>
+          <div class="chart-wrap h240"><canvas id="chartTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">L1 vs L2 vs L3</div><div class="card-sub">Investigation level split</div></div></div>
+          <div class="chart-wrap h240"><canvas id="chartLevels"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Disposition Status</div><div class="card-sub">Open vs Close</div></div></div>
+          <div class="chart-wrap h240"><canvas id="chartStatus"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="chart-row r21" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Cases per Analyst</div><div class="card-sub">Total workload by analyst</div></div><span class="badge badge-green" id="badgeCPA">—</span></div>
+          <div class="chart-wrap h220"><canvas id="chartCPA"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Customer Type</div><div class="card-sub">Case mix by segment</div></div></div>
+          <div class="chart-wrap h220"><canvas id="chartCustType"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Open Cases Month-wise -->
+      <div class="sec-label">Open Cases Analysis</div>
+      <div class="chart-row r2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Open Cases by Month</div><div class="card-sub">Month-wise open case trend</div></div><span class="badge badge-red" id="badgeOpenMonth">—</span></div>
+          <div class="chart-wrap h200"><canvas id="chartOpenMonth"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Open Cases by Analyst</div><div class="card-sub">Who has open cases pending</div></div></div>
+          <div class="chart-wrap h200"><canvas id="chartOpenAnalyst"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PRODUCTIVITY PAGE ══ -->
+    <div class="page" id="page-productivity">
+      <div class="topbar">
+        <div><h1>Productivity Analytics</h1><p>Analyst-level performance & closure rates</p></div>
+        <div class="topbar-right"><button class="upload-btn" onclick="document.getElementById('mainFileInput').click()">📂 Upload CDR File</button></div>
+      </div>
+
+      <div class="sec-label">Closure Rates</div>
+      <div class="kpi-grid k4" style="margin-bottom:16px">
+        <div class="kpi blue-v"><div class="kpi-top-bar"></div><div class="kpi-label">L1 Closure Rate</div><div class="kpi-val" id="pL1Close">—</div><div class="kpi-sub">Closed / Assigned L1</div></div>
+        <div class="kpi amber-v"><div class="kpi-top-bar"></div><div class="kpi-label">L2 Closure Rate</div><div class="kpi-val" id="pL2Close">—</div><div class="kpi-sub">Closed / Assigned L2</div></div>
+        <div class="kpi purple-v"><div class="kpi-top-bar"></div><div class="kpi-icon">🔺</div><div class="kpi-label">L3 Closure Rate</div><div class="kpi-val" id="pL3Close">—</div><div class="kpi-sub">Closed / Assigned L3</div></div>
+        <div class="kpi green-v"><div class="kpi-top-bar"></div><div class="kpi-label">Overall Closure</div><div class="kpi-val" id="pOverallClose">—</div><div class="kpi-sub">All levels combined</div></div>
+      </div>
+
+      <div class="kpi-grid k3" style="margin-bottom:20px">
+        <div class="kpi teal-v"><div class="kpi-top-bar"></div><div class="kpi-label">Avg Days to Close (L1)</div><div class="kpi-val" id="pAvgL1">—</div><div class="kpi-sub">Per analyst avg</div></div>
+        <div class="kpi amber-v"><div class="kpi-top-bar"></div><div class="kpi-label">Avg Days to Close (L2)</div><div class="kpi-val" id="pAvgL2">—</div><div class="kpi-sub">Per analyst avg</div></div>
+        <div class="kpi purple-v"><div class="kpi-top-bar"></div><div class="kpi-label">Avg Days to Close (L3)</div><div class="kpi-val" id="pAvgL3">—</div><div class="kpi-sub">Per analyst avg</div></div>
+      </div>
+
+      <div class="sec-label">Cases Closed & Avg Productivity by Month & Level</div>
+      <div class="chart-row" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Monthly Cases Closed + Avg Productivity</div><div class="card-sub">Bars = Cases closed by level · Line = Avg cases/analyst/month</div></div><span class="badge badge-blue" id="badgeProdChart">—</span></div>
+          <div class="chart-wrap h280"><canvas id="chartProdTrend"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-row r2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">L1 Avg Days to Close per Analyst</div><div class="card-sub">Only closed L1 cases with dates</div></div></div>
+          <div class="chart-wrap h240"><canvas id="chartL1Age"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">L2 Avg Days to Close per Analyst</div><div class="card-sub">Only closed L2 cases with dates</div></div></div>
+          <div class="chart-wrap h240"><canvas id="chartL2Age"></canvas></div>
+        </div>
+      </div>
+
+      <div class="sec-label">Analyst Scoreboard</div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hdr"><div><div class="card-title">Full Analyst Performance Table</div><div class="card-sub">Green = top · Amber = avg · Red = needs attention</div></div></div>
+        <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Analyst</th><th>Total</th><th>Closed</th><th>Open</th><th>L1</th><th>L2</th><th>L3</th><th>Avg Age (days)</th><th>Productivity Score</th><th>Status</th></tr></thead><tbody id="scoreTbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ══ AGEING PAGE ══ -->
+    <div class="page" id="page-ageing">
+      <div class="topbar"><div><h1>Ageing Analysis</h1><p>Open case ageing buckets & TAT breach analysis</p></div></div>
+
+      <div class="sec-label">Open Cases Ageing Summary (Weekly Summary View)</div>
+      <div id="ageingSummaryTable" style="margin-bottom:20px"></div>
+
+      <div class="chart-row r2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">Open Ageing Distribution</div><div class="card-sub">0-10 · 11-15 · 16-25 · 26-30 · 30+ days</div></div></div>
+          <div class="chart-wrap h240"><canvas id="chartAgeingBuckets"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div><div class="card-title">TAT Breach Analysts (Ageing > 10 days)</div><div class="card-sub">Analysts with open cases breaching 10-day TAT</div></div><span class="badge badge-red" id="badgeTAT">—</span></div>
+          <div class="chart-wrap h240"><canvas id="chartTATBreach"></canvas></div>
+        </div>
+      </div>
+
+      <div class="sec-label">TAT Breach Detail</div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hdr"><div><div class="card-title">Analysts with TAT Breach (Open Cases > 10 days)</div><div class="card-sub">Sorted by breach count descending</div></div></div>
+        <div class="tbl-wrap ageing-table">
+          <table><thead><tr><th>Analyst</th><th>Total Open</th><th>0-10 days</th><th>11-15 days</th><th>16-25 days</th><th>26-30 days</th><th>30+ days</th><th>TAT Breach Count</th><th>Breach %</th></tr></thead>
+          <tbody id="tatTbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TEAM PAGE ══ -->
+    <div class="page" id="page-team">
+      <div class="topbar">
+        <div><h1>Team View</h1><p>Workload balance, heatmap & case explorer</p></div>
+        <div class="topbar-right"><button class="upload-btn" onclick="document.getElementById('mainFileInput').click()">📂 Upload CDR File</button></div>
+      </div>
+
+      <div class="sec-label">Workload Heatmap (Cases per Analyst per Month)</div>
+      <div class="card" style="margin-bottom:16px">
+        <div id="heatmapWrap"><div class="empty-state"><div class="ei">🗓</div><p>Upload CDR data to see workload heatmap</p></div></div>
+      </div>
+
+      <div class="sec-label">Case Explorer</div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hdr">
+          <div><div class="card-title">All Case Records</div><div class="card-sub">Search and browse individual cases</div></div>
+          <input id="caseSearch" placeholder="Search analyst, case ID, customer…" oninput="renderCaseTable()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;outline:none;width:240px;font-family:'Inter',sans-serif">
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>Case ID</th><th>Analyst</th><th>Level</th><th>Status</th><th>Customer Name</th><th>Customer Type</th><th>Created</th><th>Last Action</th><th>Ageing</th></tr></thead><tbody id="caseTbody"></tbody></table></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:11px;color:var(--text3)">
+          <span id="caseCountLabel"></span>
+          <div style="display:flex;gap:6px">
+            <button onclick="casePage(-1)" style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);cursor:pointer;font-size:11px">‹ Prev</button>
+            <span id="casePageLabel" style="padding:4px 10px;background:var(--surface2);border-radius:6px;font-size:11px"></span>
+            <button onclick="casePage(1)" style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);cursor:pointer;font-size:11px">Next ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AI CHAT ══ -->
+    <div class="page" id="page-aichat">
+      <div class="topbar"><div><h1>AI Data Chat</h1><p>Ask anything about your operational data</p></div>
+        <div class="topbar-right"><button class="upload-btn" onclick="document.getElementById('mainFileInput').click()">📂 Upload CDR File</button></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;height:calc(100vh - 140px)">
+        <div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px">📂 Data Source</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Upload CDR file to begin AI analysis</div>
+          <div id="aiUploadZone" onclick="document.getElementById('mainFileInput').click()"
+               style="border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:var(--surface2);flex-shrink:0">
+            <div style="font-size:32px;margin-bottom:8px">📤</div>
+            <div style="font-size:13px;color:var(--text3)"><strong style="color:var(--blue)">Click</strong> or drag & drop CDR file</div>
+          </div>
+          <div id="aiFileInfo" style="display:none"></div>
+          <div id="aiPreview" style="margin-top:12px;flex:1;overflow:auto"></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;overflow:hidden;padding:0">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div>
+            <div><div style="font-size:13px;font-weight:700">OpsBot AI</div><div style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:4px;animation:pulse 2s infinite"></span>Ready to analyze</div></div>
+          </div>
+          <div id="chatMessages" style="flex:1;padding:16px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;gap:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🤖</div>
+              <div class="chat-bubble-ai">Hello! I'm your AML Operations AI analyst. Upload a CDR file, then ask me about analyst performance, case ageing, bottlenecks, and productivity trends!</div>
+            </div>
+          </div>
+          <div id="sqWrap" style="display:none;padding:0 16px 10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">Suggested</div><div id="sqBtns"></div></div>
+          <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
+            <textarea id="chatInput" placeholder="Ask about your CDR data…" rows="1" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none;resize:none;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor=''" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button id="sendBtn" onclick="sendChat()" style="background:var(--blue);border:none;border-radius:8px;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CREDENTIALS
+// ═══════════════════════════════════════
+const USERS = {
+  admin:{ password:'admin123', name:'Admin User', role:'Administrator' },
+  alice:{ password:'pass456',  name:'Alice Johnson', role:'Sr. Analyst' },
+  bob:  { password:'pass789',  name:'Bob Smith', role:'Risk Analyst' },
+  sara: { password:'sara2024', name:'Sara Williams', role:'Data Analyst' },
+  dev:  { password:'devteam',  name:'Dev Team', role:'Developer' },
+  ops:  { password:'ops2024',  name:'Ops Head', role:'Operations Head' }
+};
+let currentUser = null;
+
+function togglePass(){
+  const inp = document.getElementById('loginPass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function doLogin(){
+  const id = document.getElementById('loginId').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if(USERS[id] && USERS[id].password === pass){
+    currentUser = { id, ...USERS[id] };
+    err.style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('sbAvatar').textContent = currentUser.name[0];
+    document.getElementById('sbName').textContent = currentUser.name;
+    document.getElementById('sbRole').textContent = currentUser.role;
+    document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  } else {
+    err.style.display = 'block';
+    document.getElementById('loginPass').value = '';
+  }
+}
+function doLogout(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPass').value = '';
+  rawData = []; filteredData = []; workbook = null; chatHistory = [];
+}
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+});
+
+// ═══════════════════════════════════════
+// DATA GLOBALS
+// ═══════════════════════════════════════
+let rawData = [], filteredData = [], workbook = null, dataHeaders = [], csvText = '';
+let CM = {};  // column map
+let charts = {};
+let chatHistory = [];
+let caseCurrentPage = 0;
+const PAGE_SIZE = 15;
+let caseFilteredRows = [];
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showPage(name, el){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  if(rawData.length){
+    if(name==='productivity') renderProductivity();
+    if(name==='ageing') renderAgeing();
+    if(name==='team') renderTeam();
+  }
+}
+
+// ═══════════════════════════════════════
+// FILE UPLOAD
+// ═══════════════════════════════════════
+function handleUpload(file){
+  if(!file) return;
+  const n = file.name.toLowerCase();
+  if(n.endsWith('.csv')) readCSV(file);
+  else if(n.endsWith('.xls')||n.endsWith('.xlsx')) readExcel(file);
+  else alert('Please upload CSV, XLS, or XLSX');
+}
+function readCSV(file){
+  const r = new FileReader();
+  r.onload = e => { workbook=null; processCSV(e.target.result, file.name); };
+  r.readAsText(file);
+}
+function readExcel(file){
+  const r = new FileReader();
+  r.onload = e => {
+    workbook = XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+    const names = workbook.SheetNames;
+    const sel = document.getElementById('sheetSel');
+    sel.innerHTML = names.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
+    const wrap = document.getElementById('sheetWrap');
+    wrap.style.display = names.length > 1 ? 'flex' : 'none';
+    loadSheetByIdx(0, file.name);
+  };
+  r.readAsArrayBuffer(file);
+}
+function loadSheetIdx(){
+  const idx = parseInt(document.getElementById('sheetSel').value);
+  loadSheetByIdx(idx);
+}
+function loadSheetByIdx(idx, fname){
+  if(!workbook) return;
+  fname = fname || 'file.xlsx';
+  const sn = workbook.SheetNames[idx];
+  const sh = workbook.Sheets[sn];
+  const json = XLSX.utils.sheet_to_json(sh,{header:1,defval:''});
+  if(!json||json.length<2){ alert('Sheet is empty'); return; }
+  const headers = json[0].map(h=>String(h||'').trim()).filter(h=>h);
+  const numCols = headers.length;
+  const rows = json.slice(1)
+    .filter(r => r.some(v => v !== '' && v !== null && v !== undefined))
+    .map(r => headers.reduce((o,h,i)=>{ o[h]=String(r[i]===undefined||r[i]===null?'':r[i]).trim(); return o; }, {}));
+  csvText = [headers.join(','),...rows.map(r=>headers.map(h=>r[h]||'').join(','))].join('\n');
+  processData(rows, headers, fname, sn);
+}
+function processCSV(text, fname){
+  csvText = text;
+  const lines = text.trim().split('\n').filter(l=>l.trim());
+  const headers = lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
+  const rows = lines.slice(1).map(l=>{
+    const vals = splitCSVLine(l);
+    return headers.reduce((o,h,i)=>{ o[h]=(vals[i]||'').replace(/"/g,'').trim(); return o; },{});
+  }).filter(r=>Object.values(r).some(v=>v));
+  processData(rows, headers, fname, null);
+}
+function splitCSVLine(line){
+  const result=[]; let curr='', inQ=false;
+  for(let c of line){ if(c==='"') inQ=!inQ; else if(c===','&&!inQ){ result.push(curr);curr=''; } else curr+=c; }
+  result.push(curr); return result;
+}
+
+// ═══════════════════════════════════════
+// COLUMN DETECTION — CDR format aware
+// ═══════════════════════════════════════
+function detectCols(headers){
+  const find = (...kws) => headers.find(h => kws.some(k => h.toLowerCase().replace(/[\s_]/g,'').includes(k.toLowerCase().replace(/[\s_]/g,''))));
+  return {
+    user:        find('user_name','username','analyst','user'),
+    level:       find('investigation_level','investigationlevel','level','inv_level'),
+    status:      find('disposition_status','disposition_statu','dispositionstatus','status','disposition'),
+    subStatus:   find('case_sub_status','case_status','substatus','sub_status'),
+    custType:    find('customer_type','custtype','clienttype'),
+    custName:    find('customer_name','custname','clientname'),
+    custId:      find('customer_id','custid','clientid'),
+    createdDate: find('created_date','createdate','creationdate','createdat','opendate'),
+    lastAction:  find('last_action_date','lastactiondate','lastaction','updateddate','closeddate'),
+    // last_action_date_ms is IGNORED as per user instruction
+    comments:    find('comments','comment','remarks','notes'),
+    caseId:      find('case_id','caseid','casenumber','ticketid','id'),
+    month:       find('month1','month','reportingmonth','period'),
+    actionType:  find('action_type','actiontype'),
+    ageing:      find('ageing','aging'),
+    l3User:      find('l3_user','l3user'),
+    l2User:      find('l2_user','l2user'),
+    l1User:      find('l1_user','l1user'),
+  };
+}
+
+function pDate(val){
+  if(!val||val==='') return null;
+  if(val instanceof Date) return isNaN(val)?null:val;
+  // Handle numeric Excel serial
+  if(/^\d{13,}$/.test(val)){ const d=new Date(parseInt(val)); return isNaN(d)?null:d; }
+  // Handle Excel serial numbers (5-6 digits)
+  if(/^\d{5,6}$/.test(val)){
+    const serial = parseInt(val);
+    const d = new Date((serial - 25569)*86400*1000);
+    return isNaN(d)?null:d;
+  }
+  // DD/MM/YYYY or DD-MM-YYYY
+  let m = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){ const yr=m[3].length===2?'20'+m[3]:m[3]; const d=new Date(`${yr}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`); if(!isNaN(d)) return d; }
+  // YYYY-MM-DD
+  m = val.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(m){ const d=new Date(`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`); if(!isNaN(d)) return d; }
+  const d = new Date(val);
+  return isNaN(d)?null:d;
+}
+
+function enrichRow(r){
+  const created = CM.createdDate ? pDate(r[CM.createdDate]) : null;
+  const lastAct  = CM.lastAction  ? pDate(r[CM.lastAction])  : null;
+  let ageing = null;
+  if(created && lastAct){ ageing = Math.round((lastAct-created)/(86400000)); if(ageing<0) ageing=0; }
+  const lvlRaw = (r[CM.level]||'').toUpperCase();
+  const lvl = lvlRaw.includes('L3')?'L3':lvlRaw.includes('L2')?'L2':lvlRaw.includes('L1')?'L1':'OTHER';
+  const statusRaw = (r[CM.status]||'').toLowerCase();
+  const isClosed = statusRaw.includes('close')||statusRaw.includes('complet');
+  const isOpen   = statusRaw.includes('open') || (!isClosed && statusRaw !== '');
+  return { ...r, _created:created, _lastAct:lastAct, _ageing:ageing, _level:lvl, _closed:isClosed, _open:isOpen };
+}
+
+function processData(rows, headers, fname, sheet){
+  dataHeaders = headers;
+  CM = detectCols(headers);
+  rawData = rows.map(r => enrichRow(r));
+  filteredData = [...rawData];
+  populateFilters();
+  renderDashboard();
+  updateUploadUI(fname, sheet, rows.length);
+  document.getElementById('filtersBar').style.display = 'flex';
+  document.getElementById('dashSub').textContent = `${rows.length.toLocaleString()} cases loaded · ${fname}${sheet?' · Sheet: '+sheet:''}`;
+  renderAIPreview(fname, sheet);
+  chatHistory = [];
+}
+
+function updateUploadUI(fname, sheet, rows){
+  const short = fname.length>22?fname.slice(0,20)+'…':fname;
+  const btn = document.getElementById('uploadBtn');
+  btn.textContent = '✅ ' + short;
+  btn.classList.add('loaded');
+}
+
+// ═══════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════
+function populateFilters(){
+  populateSel('fMonth', CM.month||CM.createdDate, 'Month', r=>{
+    if(CM.month) return r[CM.month]||'';
+    if(r._created) return r._created.toISOString().slice(0,7);
+    return '';
+  });
+  populateSelDirect('fUser', CM.user, 'Analyst');
+  populateSelDirect('fLevel', null, 'Level', ()=>['L1','L2','L3']);
+  populateSelDirect('fStatus', CM.status, 'Status');
+}
+function populateSel(id, col, label, getVal){
+  const el = document.getElementById(id); if(!el) return;
+  el.innerHTML = `<option value="">All ${label}s</option>`;
+  const vals = [...new Set(rawData.map(getVal).filter(Boolean))].sort();
+  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); });
+}
+function populateSelDirect(id, col, label, getAll){
+  const el = document.getElementById(id); if(!el) return;
+  el.innerHTML = `<option value="">All ${label}s</option>`;
+  let vals;
+  if(getAll) vals = getAll();
+  else if(col) vals = [...new Set(rawData.map(r=>r[col]).filter(Boolean))].sort();
+  else return;
+  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); });
+}
+function applyFilters(){
+  const fM=document.getElementById('fMonth')?.value;
+  const fU=document.getElementById('fUser')?.value;
+  const fL=document.getElementById('fLevel')?.value;
+  const fS=document.getElementById('fStatus')?.value;
+  filteredData = rawData.filter(r=>{
+    if(fM){
+      const rv = CM.month ? (r[CM.month]||'') : (r._created?r._created.toISOString().slice(0,7):'');
+      if(rv !== fM) return false;
+    }
+    if(fU && CM.user && r[CM.user]!==fU) return false;
+    if(fL && r._level!==fL) return false;
+    if(fS && CM.status && r[CM.status]!==fS) return false;
+    return true;
+  });
+  document.getElementById('filterCount').textContent = `${filteredData.length.toLocaleString()} / ${rawData.length.toLocaleString()} cases`;
+  renderDashboard();
+}
+function resetFilters(){
+  ['fMonth','fUser','fLevel','fStatus'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  filteredData = [...rawData];
+  document.getElementById('filterCount').textContent = '';
+  renderDashboard();
+}
+
+// ═══════════════════════════════════════
+// DASHBOARD RENDER
+// ═══════════════════════════════════════
+function renderDashboard(){
+  const d = filteredData;
+  if(!d.length) return;
+
+  const total = d.length;
+  const closed = d.filter(r=>r._closed).length;
+  const open = d.filter(r=>r._open).length;
+  const analysts = new Set(d.map(r=>CM.user?r[CM.user]:'').filter(Boolean)).size;
+
+  const l1 = d.filter(r=>r._level==='L1').length;
+  const l2 = d.filter(r=>r._level==='L2').length;
+  const l3 = d.filter(r=>r._level==='L3').length;
+
+  // % L2 to L3 escalation: L3/(L2+L3)
+  const l2l3pct = (l2+l3)>0 ? ((l3/(l2+l3))*100).toFixed(2)+'%' : '—';
+
+  const aged = d.filter(r=>r._ageing!==null).map(r=>r._ageing);
+  const avgAge = aged.length ? (aged.reduce((a,b)=>a+b,0)/aged.length).toFixed(1) : '—';
+
+  // KPI Row 1
+  set('kTotal', total.toLocaleString());
+  set('kClosed', closed.toLocaleString());
+  set('kClosedPct', `${total>0?((closed/total)*100).toFixed(1):0}% closure rate`);
+  set('kOpen', open.toLocaleString());
+  set('kOpenPct', `${total>0?((open/total)*100).toFixed(1):0}% open rate`);
+  set('kAnalysts', analysts);
+  set('kL2L3', l2l3pct);
+  set('kL2L3sub', `L3: ${l3} / (L2+L3): ${l2+l3}`);
+  set('kAvgAge', avgAge==='—'?'—':avgAge+'d');
+
+  // KPI Row 2
+  set('kL1', l1.toLocaleString());
+  set('kL1sub', `${total>0?((l1/total)*100).toFixed(1):0}% of total`);
+  set('kL2', l2.toLocaleString());
+  set('kL2sub', `${total>0?((l2/total)*100).toFixed(1):0}% of total`);
+  set('kL3', l3.toLocaleString());
+  set('kL3sub', `${total>0?((l3/total)*100).toFixed(1):0}% of total`);
+  set('kAvgCases', analysts>0?(total/analysts).toFixed(1):'—');
+
+  renderTrendChart(d);
+  renderLevelsChart(d);
+  renderStatusChart(d);
+  renderCPAChart(d);
+  renderCustTypeChart(d);
+  renderOpenMonthChart(d);
+  renderOpenAnalystChart(d);
+}
+
+function set(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+
+function getMonthKey(r){
+  if(CM.month && r[CM.month]) return r[CM.month];
+  if(r._created) return r._created.toISOString().slice(0,7);
+  if(r._lastAct) return r._lastAct.toISOString().slice(0,7);
+  return null;
+}
+
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+const baseOpts = (extra={})=>({
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{ display:false }, ...extra.plugins },
+  scales:{
+    x:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{color:'#8896ab',font:{family:'Inter',size:10}} },
+    y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{color:'#8896ab',font:{family:'Inter',size:10}} },
+    ...extra.scales
+  },
+  ...extra
+});
+
+function renderTrendChart(d){
+  destroyChart('chartTrend');
+  const byMonth = {};
+  d.forEach(r=>{
+    const mk = getMonthKey(r); if(!mk) return;
+    if(!byMonth[mk]) byMonth[mk]={L1:0,L2:0,L3:0,analysts:new Set()};
+    byMonth[mk][r._level] = (byMonth[mk][r._level]||0) + 1;
+    if(CM.user && r[CM.user]) byMonth[mk].analysts.add(r[CM.user]);
+  });
+  const months = Object.keys(byMonth).sort();
+  const l1v = months.map(m=>byMonth[m].L1||0);
+  const l2v = months.map(m=>byMonth[m].L2||0);
+  const l3v = months.map(m=>byMonth[m].L3||0);
+  const totals = months.map(m=>(byMonth[m].L1||0)+(byMonth[m].L2||0)+(byMonth[m].L3||0));
+  const avgProd = months.map(m=>{ const a=byMonth[m].analysts.size; return a>0?(( (byMonth[m].L1||0)+(byMonth[m].L2||0)+(byMonth[m].L3||0))/a).toFixed(1):0; });
+
+  set('badgeTrend', months.length+' months');
+  charts['chartTrend'] = new Chart(document.getElementById('chartTrend'),{
+    type:'bar',
+    data:{
+      labels:months,
+      datasets:[
+        {label:'L1',data:l1v,backgroundColor:'rgba(26,115,232,0.7)',borderRadius:4,borderSkipped:false,stack:'s'},
+        {label:'L2',data:l2v,backgroundColor:'rgba(245,158,11,0.7)',borderRadius:4,borderSkipped:false,stack:'s'},
+        {label:'L3',data:l3v,backgroundColor:'rgba(124,58,237,0.7)',borderRadius:4,borderSkipped:false,stack:'s'},
+        {label:'Avg Prod',data:avgProd,type:'line',borderColor:'#7c3aed',backgroundColor:'transparent',pointBackgroundColor:'#7c3aed',tension:0.4,yAxisID:'yProd',pointRadius:5,borderWidth:2.5}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:10,padding:10}}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#8896ab',font:{family:'Inter',size:10}},stacked:true},
+        y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#8896ab',font:{family:'Inter',size:10}},stacked:true,title:{display:true,text:'Cases Closed',color:'#8896ab',font:{size:10}}},
+        yProd:{position:'right',grid:{display:false},ticks:{color:'#7c3aed',font:{family:'Inter',size:10}},title:{display:true,text:'Avg Productivity',color:'#7c3aed',font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderLevelsChart(d){
+  destroyChart('chartLevels');
+  const l1=d.filter(r=>r._level==='L1').length;
+  const l2=d.filter(r=>r._level==='L2').length;
+  const l3=d.filter(r=>r._level==='L3').length;
+  const other=d.filter(r=>r._level==='OTHER').length;
+  const labels=['L1','L2','L3',...(other>0?['Other']:[])];
+  const vals=[l1,l2,l3,...(other>0?[other]:[])];
+  charts['chartLevels'] = new Chart(document.getElementById('chartLevels'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:['#1a73e8','#f59e0b','#7c3aed','#8896ab'],borderWidth:2,borderColor:'#fff',hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:10},boxWidth:10,padding:10}}}}
+  });
+}
+
+function renderStatusChart(d){
+  destroyChart('chartStatus');
+  const cnt = {};
+  d.forEach(r=>{ const s=CM.status?(r[CM.status]||'Unknown'):'Unknown'; cnt[s]=(cnt[s]||0)+1; });
+  const labels=Object.keys(cnt).slice(0,6); const vals=labels.map(l=>cnt[l]);
+  const colors=['#1a73e8','#0f9d58','#d93025','#f59e0b','#7c3aed','#0891b2'];
+  charts['chartStatus'] = new Chart(document.getElementById('chartStatus'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors.slice(0,labels.length),borderWidth:2,borderColor:'#fff',hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:10},boxWidth:10,padding:10}}}}
+  });
+}
+
+function renderCPAChart(d){
+  destroyChart('chartCPA');
+  if(!CM.user){ return; }
+  const cnt={}; d.forEach(r=>{ const u=r[CM.user]||'Unknown'; cnt[u]=(cnt[u]||0)+1; });
+  const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const avg=sorted.reduce((s,[,v])=>s+v,0)/sorted.length;
+  set('badgeCPA', sorted.length+' analysts');
+  charts['chartCPA'] = new Chart(document.getElementById('chartCPA'),{
+    type:'bar',
+    data:{labels:sorted.map(s=>s[0]),datasets:[{label:'Cases',data:sorted.map(s=>s[1]),backgroundColor:sorted.map(s=>s[1]>=avg*1.2?'rgba(15,157,88,0.7)':s[1]<avg*0.8?'rgba(217,48,37,0.7)':'rgba(26,115,232,0.7)'),borderRadius:5,borderSkipped:false}]},
+    options:baseOpts()
+  });
+}
+
+function renderCustTypeChart(d){
+  destroyChart('chartCustType');
+  if(!CM.custType){ return; }
+  const cnt={}; d.forEach(r=>{ const v=r[CM.custType]||'Unknown'; cnt[v]=(cnt[v]||0)+1; });
+  const labels=Object.keys(cnt).slice(0,7); const vals=labels.map(l=>cnt[l]);
+  const colors=['#1a73e8','#0f9d58','#7c3aed','#f59e0b','#d93025','#0891b2','#ec4899'];
+  charts['chartCustType'] = new Chart(document.getElementById('chartCustType'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors.slice(0,labels.length),borderWidth:2,borderColor:'#fff',hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:10},boxWidth:10,padding:10}}}}
+  });
+}
+
+function renderOpenMonthChart(d){
+  destroyChart('chartOpenMonth');
+  const open = d.filter(r=>r._open);
+  const byMonth={};
+  open.forEach(r=>{ const mk=getMonthKey(r); if(!mk) return; byMonth[mk]=(byMonth[mk]||0)+1; });
+  const months=Object.keys(byMonth).sort();
+  set('badgeOpenMonth', open.length+' open cases');
+  charts['chartOpenMonth'] = new Chart(document.getElementById('chartOpenMonth'),{
+    type:'bar',
+    data:{labels:months,datasets:[{label:'Open Cases',data:months.map(m=>byMonth[m]),backgroundColor:'rgba(217,48,37,0.65)',borderRadius:5,borderSkipped:false}]},
+    options:baseOpts()
+  });
+}
+
+function renderOpenAnalystChart(d){
+  destroyChart('chartOpenAnalyst');
+  if(!CM.user) return;
+  const open=d.filter(r=>r._open);
+  const cnt={}; open.forEach(r=>{ const u=r[CM.user]||'Unknown'; cnt[u]=(cnt[u]||0)+1; });
+  const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  charts['chartOpenAnalyst'] = new Chart(document.getElementById('chartOpenAnalyst'),{
+    type:'bar',
+    data:{labels:sorted.map(s=>s[0]),datasets:[{label:'Open',data:sorted.map(s=>s[1]),backgroundColor:'rgba(217,48,37,0.6)',borderRadius:5,borderSkipped:false}]},
+    options:{...baseOpts(),indexAxis:'y'}
+  });
+}
+
+// ═══════════════════════════════════════
+// PRODUCTIVITY PAGE
+// ═══════════════════════════════════════
+function renderProductivity(){
+  const d = filteredData.length ? filteredData : rawData;
+  if(!d.length) return;
+
+  // Closure rates per level
+  ['L1','L2','L3'].forEach((lv,i)=>{
+    const lvData = d.filter(r=>r._level===lv);
+    const cls = lvData.filter(r=>r._closed).length;
+    const pct = lvData.length>0?((cls/lvData.length)*100).toFixed(1)+'%':'—';
+    set(['pL1Close','pL2Close','pL3Close'][i], pct);
+  });
+  const overall = d.length>0?((d.filter(r=>r._closed).length/d.length)*100).toFixed(1)+'%':'—';
+  set('pOverallClose', overall);
+
+  // Avg days to close per level
+  ['L1','L2','L3'].forEach((lv,i)=>{
+    const cls = d.filter(r=>r._level===lv&&r._closed&&r._ageing!==null);
+    const avg = cls.length?(cls.reduce((s,r)=>s+r._ageing,0)/cls.length).toFixed(1)+'d':'—';
+    set(['pAvgL1','pAvgL2','pAvgL3'][i], avg);
+  });
+
+  renderProdTrendChart(d);
+  renderLevelAgeChart(d,'L1','chartL1Age');
+  renderLevelAgeChart(d,'L2','chartL2Age');
+  renderScoreTable(d);
+}
+
+function renderProdTrendChart(d){
+  destroyChart('chartProdTrend');
+  const byMonth={};
+  d.forEach(r=>{
+    if(!r._closed) return;
+    const mk=getMonthKey(r); if(!mk) return;
+    if(!byMonth[mk]) byMonth[mk]={L1:0,L2:0,L3:0,analysts:new Set()};
+    byMonth[mk][r._level]=(byMonth[mk][r._level]||0)+1;
+    if(CM.user&&r[CM.user]) byMonth[mk].analysts.add(r[CM.user]);
+  });
+  const months=Object.keys(byMonth).sort();
+  set('badgeProdChart', months.length+' months');
+  const l1v=months.map(m=>byMonth[m].L1||0);
+  const l2v=months.map(m=>byMonth[m].L2||0);
+  const l3v=months.map(m=>byMonth[m].L3||0);
+  const avgProd=months.map(m=>{ const a=byMonth[m].analysts.size; const t=(byMonth[m].L1||0)+(byMonth[m].L2||0)+(byMonth[m].L3||0); return a>0?(t/a).toFixed(2):0; });
+  charts['chartProdTrend'] = new Chart(document.getElementById('chartProdTrend'),{
+    type:'bar',
+    data:{
+      labels:months,
+      datasets:[
+        {label:'L1 Closed',data:l1v,backgroundColor:'rgba(26,115,232,0.75)',borderRadius:4,borderSkipped:false,stack:'s'},
+        {label:'L2 Closed',data:l2v,backgroundColor:'rgba(245,158,11,0.75)',borderRadius:4,borderSkipped:false,stack:'s'},
+        {label:'L3 Closed',data:l3v,backgroundColor:'rgba(124,58,237,0.75)',borderRadius:4,borderSkipped:false,stack:'s'},
+        {label:'Avg Productivity',data:avgProd,type:'line',borderColor:'#d93025',backgroundColor:'transparent',pointBackgroundColor:'#d93025',tension:0.35,yAxisID:'yProd',pointRadius:5,borderWidth:2.5,borderDash:[]}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:10,padding:10}}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#8896ab',font:{family:'Inter',size:10}},stacked:true},
+        y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#8896ab',font:{family:'Inter',size:10}},stacked:true,title:{display:true,text:'Cases Closed',color:'#8896ab',font:{size:10}}},
+        yProd:{position:'right',grid:{display:false},ticks:{color:'#d93025',font:{family:'Inter',size:10}},title:{display:true,text:'Avg Prod (cases/analyst)',color:'#d93025',font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderLevelAgeChart(d, level, chartId){
+  destroyChart(chartId);
+  if(!CM.user) return;
+  const lvData=d.filter(r=>r._level===level&&r._closed&&r._ageing!==null);
+  const byUser={};
+  lvData.forEach(r=>{ const u=CM.user?r[CM.user]||'Unknown':'Unknown'; if(!byUser[u]) byUser[u]=[]; byUser[u].push(r._ageing); });
+  const users=Object.keys(byUser).sort();
+  const avgs=users.map(u=>+(byUser[u].reduce((a,b)=>a+b,0)/byUser[u].length).toFixed(1));
+  const overallAvg=avgs.reduce((a,b)=>a+b,0)/avgs.length||0;
+  charts[chartId]=new Chart(document.getElementById(chartId),{
+    type:'bar',
+    data:{labels:users,datasets:[{label:`${level} Avg Days`,data:avgs,backgroundColor:avgs.map(v=>v>overallAvg*1.3?'rgba(217,48,37,0.7)':v<overallAvg*0.8?'rgba(15,157,88,0.7)':'rgba(245,158,11,0.6)'),borderRadius:5,borderSkipped:false}]},
+    options:{...baseOpts(),indexAxis:'y',plugins:{...baseOpts().plugins,legend:{display:false}}}
+  });
+}
+
+function renderScoreTable(d){
+  if(!CM.user) return;
+  const users=[...new Set(d.map(r=>CM.user?r[CM.user]||'':'').filter(Boolean))].sort();
+  const rows=users.map(u=>{
+    const ud=d.filter(r=>CM.user&&r[CM.user]===u);
+    const total=ud.length;
+    const closed=ud.filter(r=>r._closed).length;
+    const open=ud.filter(r=>r._open).length;
+    const l1=ud.filter(r=>r._level==='L1').length;
+    const l2=ud.filter(r=>r._level==='L2').length;
+    const l3=ud.filter(r=>r._level==='L3').length;
+    const aged=ud.filter(r=>r._ageing!==null).map(r=>r._ageing);
+    const avgAge=aged.length?(aged.reduce((a,b)=>a+b,0)/aged.length).toFixed(1):'—';
+    return {u,total,closed,open,l1,l2,l3,avgAge,_aged:aged.length?(aged.reduce((a,b)=>a+b,0)/aged.length):null};
+  });
+  const maxT=Math.max(...rows.map(r=>r.total),1);
+  rows.sort((a,b)=>b.total-a.total);
+  const avgTotal=rows.reduce((s,r)=>s+r.total,0)/(rows.length||1);
+  document.getElementById('scoreTbody').innerHTML=rows.map((r,i)=>{
+    const score=Math.round(r.total/maxT*100);
+    const scoreColor=score>=75?'#0f9d58':score>=45?'#f59e0b':'#d93025';
+    const perfLabel=score>=75?'<span class="pill pill-green">⭐ Top Performer</span>':score>=45?'<span class="pill pill-amber">📊 Average</span>':'<span class="pill pill-red">⚠ Needs Attention</span>';
+    const ageClass=r._aged===null?'':r._aged>30?'color:#d93025;font-weight:700':r._aged>14?'color:#f59e0b;font-weight:600':'color:#0f9d58;font-weight:600';
+    return `<tr>
+      <td class="mono" style="color:#8896ab">#${i+1}</td>
+      <td style="font-weight:600">${r.u}</td>
+      <td class="mono">${r.total.toLocaleString()}</td>
+      <td class="mono" style="color:#0f9d58">${r.closed.toLocaleString()}</td>
+      <td class="mono" style="color:#d93025">${r.open.toLocaleString()}</td>
+      <td class="mono">${r.l1}</td>
+      <td class="mono">${r.l2}</td>
+      <td class="mono">${r.l3}</td>
+      <td class="mono" style="${ageClass}">${r.avgAge==='—'?'—':r.avgAge+'d'}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="prog-bar"><div class="prog-fill" style="width:${score}%;background:${scoreColor}"></div></div><span class="mono" style="color:${scoreColor}">${score}</span></div></td>
+      <td>${perfLabel}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// AGEING PAGE
+// ═══════════════════════════════════════
+function renderAgeing(){
+  const d = filteredData.length ? filteredData : rawData;
+  if(!d.length) return;
+
+  const openCases = d.filter(r=>r._open && r._ageing!==null);
+
+  // Ageing buckets
+  const buckets = {'0-10':0,'11-15':0,'16-25':0,'26-30':0,'30+':0};
+  openCases.forEach(r=>{
+    const a=r._ageing;
+    if(a<=10) buckets['0-10']++;
+    else if(a<=15) buckets['11-15']++;
+    else if(a<=25) buckets['16-25']++;
+    else if(a<=30) buckets['26-30']++;
+    else buckets['30+']++;
+  });
+
+  // Monthly summary by level
+  const byMonth={};
+  d.forEach(r=>{
+    const mk=getMonthKey(r); if(!mk) return;
+    const lv=r._level; if(lv==='OTHER') return;
+    if(!byMonth[mk]) byMonth[mk]={};
+    if(!byMonth[mk][lv]) byMonth[mk][lv]={assigned:0,open:0,completed:0,b0:0,b11:0,b16:0,b26:0,b30:0};
+    byMonth[mk][lv].assigned++;
+    if(r._open){ byMonth[mk][lv].open++;
+      if(r._ageing!==null){
+        const a=r._ageing;
+        if(a<=10) byMonth[mk][lv].b0++;
+        else if(a<=15) byMonth[mk][lv].b11++;
+        else if(a<=25) byMonth[mk][lv].b16++;
+        else if(a<=30) byMonth[mk][lv].b26++;
+        else byMonth[mk][lv].b30++;
+      }
+    }
+    if(r._closed) byMonth[mk][lv].completed++;
+  });
+
+  // Build summary table
+  const months=Object.keys(byMonth).sort();
+  let tableHTML=`<div class="card"><div class="card-hdr"><div><div class="card-title">Weekly Summary — Ageing by Month & Level</div><div class="card-sub">Assigned · Open · Completed · Ageing Buckets</div></div></div>
+    <div class="tbl-wrap"><table class="ageing-table"><thead><tr>
+      <th>Month</th><th>Level</th><th>Assigned</th><th>Open</th><th>Completed</th>
+      <th style="background:#e8f5e9">0-10 days</th><th style="background:#fff3e0">11-15 days</th>
+      <th style="background:#fce4ec">16-25 days</th><th style="background:#ffebee">26-30 days</th>
+      <th style="background:#ffebee">30+ days</th>
+    </tr></thead><tbody>`;
+  months.forEach(mk=>{
+    const lvls=['L1','L2','L3'];
+    lvls.forEach((lv,li)=>{
+      const x=byMonth[mk][lv]; if(!x) return;
+      tableHTML+=`<tr>
+        ${li===0?`<td style="font-weight:700;vertical-align:top" rowspan="${lvls.filter(l=>byMonth[mk][l]).length}">${mk}</td>`:''}
+        <td><span class="pill ${lv==='L1'?'pill-blue':lv==='L2'?'pill-amber':'pill-purple'}">${lv}</span></td>
+        <td class="mono">${x.assigned}</td>
+        <td class="mono" style="color:#d93025;font-weight:600">${x.open}</td>
+        <td class="mono" style="color:#0f9d58">${x.completed}</td>
+        <td class="mono" style="background:#f1f8e9">${x.b0}</td>
+        <td class="mono" style="background:#fff8e1">${x.b11}</td>
+        <td class="mono" style="background:#fce4ec;${x.b16>0?'color:#d93025;font-weight:600':''}">${x.b16}</td>
+        <td class="mono" style="background:#ffebee;${x.b26>0?'color:#b71c1c;font-weight:700':''}">${x.b26}</td>
+        <td class="mono" style="background:#ffebee;${x.b30>0?'color:#b71c1c;font-weight:700':''}">${x.b30}</td>
+      </tr>`;
+    });
+  });
+  tableHTML+=`</tbody></table></div></div>`;
+  document.getElementById('ageingSummaryTable').innerHTML=tableHTML;
+
+  // Bucket chart
+  destroyChart('chartAgeingBuckets');
+  charts['chartAgeingBuckets']=new Chart(document.getElementById('chartAgeingBuckets'),{
+    type:'bar',
+    data:{
+      labels:Object.keys(buckets),
+      datasets:[{
+        label:'Open Cases',
+        data:Object.values(buckets),
+        backgroundColor:['rgba(15,157,88,0.7)','rgba(245,158,11,0.65)','rgba(217,48,37,0.55)','rgba(217,48,37,0.75)','rgba(183,28,28,0.8)'],
+        borderRadius:6,borderSkipped:false
+      }]
+    },
+    options:baseOpts()
+  });
+
+  // TAT breach per analyst
+  if(CM.user){
+    const breach={}; const openBreach=openCases.filter(r=>r._ageing>10);
+    set('badgeTAT', openBreach.length+' breach cases');
+    openCases.forEach(r=>{
+      const u=r[CM.user]||'Unknown';
+      if(!breach[u]) breach[u]={total:0,b0:0,b11:0,b16:0,b26:0,b30:0};
+      breach[u].total++;
+      const a=r._ageing;
+      if(a<=10) breach[u].b0++;
+      else if(a<=15) breach[u].b11++;
+      else if(a<=25) breach[u].b16++;
+      else if(a<=30) breach[u].b26++;
+      else breach[u].b30++;
+    });
+    const breachArr=Object.entries(breach).map(([u,x])=>({u,...x,breachCount:x.b11+x.b16+x.b26+x.b30})).filter(x=>x.breachCount>0).sort((a,b)=>b.breachCount-a.breachCount);
+
+    destroyChart('chartTATBreach');
+    charts['chartTATBreach']=new Chart(document.getElementById('chartTATBreach'),{
+      type:'bar',
+      data:{labels:breachArr.map(x=>x.u),datasets:[{label:'Breach Cases (>10d)',data:breachArr.map(x=>x.breachCount),backgroundColor:'rgba(217,48,37,0.7)',borderRadius:5,borderSkipped:false}]},
+      options:{...baseOpts(),indexAxis:'y',plugins:{...baseOpts().plugins,legend:{display:false}}}
+    });
+
+    document.getElementById('tatTbody').innerHTML=breachArr.map(x=>{
+      const pct=x.total>0?((x.breachCount/x.total)*100).toFixed(1)+'%':'—';
+      return `<tr class="${x.breachCount>5?'tat-breach':''}">
+        <td style="font-weight:600">${x.u}</td>
+        <td class="mono">${x.total}</td>
+        <td class="mono" style="color:#0f9d58">${x.b0}</td>
+        <td class="mono" style="color:#f59e0b;font-weight:600">${x.b11}</td>
+        <td class="mono" style="color:#d93025;font-weight:700">${x.b16}</td>
+        <td class="mono" style="color:#d93025;font-weight:700">${x.b26}</td>
+        <td class="mono" style="color:#b71c1c;font-weight:800">${x.b30}</td>
+        <td class="mono" style="color:${x.breachCount>0?'#d93025':'#0f9d58'};font-weight:700">${x.breachCount}</td>
+        <td><span class="pill ${parseFloat(pct)>50?'pill-red':parseFloat(pct)>20?'pill-amber':'pill-green'}">${pct}</span></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// ═══════════════════════════════════════
+// TEAM PAGE
+// ═══════════════════════════════════════
+function renderTeam(){
+  renderHeatmap();
+  renderCaseTable();
+}
+
+function renderHeatmap(){
+  const d=rawData; const wrap=document.getElementById('heatmapWrap');
+  if(!CM.user||!d.length){ wrap.innerHTML='<div class="empty-state"><div class="ei">📊</div><p>Need user_name & month columns</p></div>'; return; }
+  const getM=r=>getMonthKey(r)||'';
+  const users=[...new Set(d.map(r=>r[CM.user]).filter(Boolean))].sort();
+  const months=[...new Set(d.map(getM).filter(Boolean))].sort();
+  const matrix={};
+  d.forEach(r=>{ const u=r[CM.user]; const m=getM(r); if(u&&m){ if(!matrix[u]) matrix[u]={}; matrix[u][m]=(matrix[u][m]||0)+1; } });
+  const allVals=users.flatMap(u=>months.map(m=>matrix[u]?.[m]||0));
+  const max=Math.max(...allVals,1);
+  let html=`<div style="overflow-x:auto;padding:4px"><div style="display:grid;grid-template-columns:140px ${months.map(()=>'minmax(40px,1fr)').join(' ')};gap:3px;min-width:400px">`;
+  html+=`<div></div>${months.map(m=>`<div style="font-size:9px;color:#8896ab;text-align:center;padding:3px 0;font-weight:700">${m}</div>`).join('')}`;
+  users.forEach(u=>{
+    html+=`<div style="font-size:11px;font-weight:600;padding:6px 6px 6px 0;display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:135px" title="${u}">${u}</div>`;
+    months.forEach(m=>{
+      const v=matrix[u]?.[m]||0; const pct=v/max;
+      const bg=pct>0.8?'#1a73e8':pct>0.5?'#4d90fe':pct>0.2?'#a8c7fa':pct>0?'#d2e3fc':'#f0f2f5';
+      const col=pct>0.5?'#fff':pct>0?'#1a1a2e':'#ccc';
+      html+=`<div class="hm-cell" style="background:${bg};color:${col}" title="${u} · ${m}: ${v}">${v||''}</div>`;
+    });
+  });
+  html+=`</div></div>`;
+  wrap.innerHTML=html;
+}
+
+function renderCaseTable(){
+  const search=(document.getElementById('caseSearch')?.value||'').toLowerCase();
+  const d=rawData;
+  caseFilteredRows=search?d.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(search))):d;
+  const total=caseFilteredRows.length;
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+  if(caseCurrentPage>=totalPages) caseCurrentPage=Math.max(0,totalPages-1);
+  const slice=caseFilteredRows.slice(caseCurrentPage*PAGE_SIZE,(caseCurrentPage+1)*PAGE_SIZE);
+  const tbody=document.getElementById('caseTbody');
+  tbody.innerHTML=slice.map(r=>{
+    const age=r._ageing;
+    const ageStyle=age===null?'':age>30?'color:#d93025;font-weight:700':age>14?'color:#f59e0b;font-weight:600':'color:#0f9d58';
+    const lvlPill=`pill-${r._level==='L1'?'blue':r._level==='L2'?'amber':'purple'}`;
+    const stPill=r._closed?'pill-green':r._open?'pill-red':'pill-gray';
+    return `<tr>
+      <td class="mono" style="color:#1a73e8">${CM.caseId?r[CM.caseId]||'—':'—'}</td>
+      <td style="font-weight:600">${CM.user?r[CM.user]||'—':'—'}</td>
+      <td><span class="pill ${lvlPill}">${r._level}</span></td>
+      <td><span class="pill ${stPill}">${CM.status?r[CM.status]||'—':'—'}</span></td>
+      <td>${CM.custName?r[CM.custName]||'—':'—'}</td>
+      <td>${CM.custType?r[CM.custType]||'—':'—'}</td>
+      <td class="mono" style="color:#8896ab">${r._created?r._created.toLocaleDateString('en-GB'):'—'}</td>
+      <td class="mono" style="color:#8896ab">${r._lastAct?r._lastAct.toLocaleDateString('en-GB'):'—'}</td>
+      <td class="mono" style="${ageStyle}">${age===null?'—':age+'d'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('caseCountLabel').textContent=`${total.toLocaleString()} records${search?' (filtered)':''}`;
+  document.getElementById('casePageLabel').textContent=`${caseCurrentPage+1} / ${Math.max(1,totalPages)}`;
+}
+function casePage(dir){ caseCurrentPage+=dir; if(caseCurrentPage<0) caseCurrentPage=0; renderCaseTable(); }
+
+// ═══════════════════════════════════════
+// AI CHAT
+// ═══════════════════════════════════════
+function renderAIPreview(fname, sheet){
+  const info=document.getElementById('aiFileInfo'); info.style.display='block';
+  info.innerHTML=`<div style="margin:10px 0;padding:8px 12px;background:#e6f4ea;border:1px solid #34a853;border-radius:8px;font-size:11.5px;color:#0f9d58">✅ ${fname}${sheet?' · '+sheet:''} · ${rawData.length} rows × ${dataHeaders.length} cols</div>`;
+  const preview=document.getElementById('aiPreview');
+  const sliceH=dataHeaders.slice(0,8); const sliceR=rawData.slice(0,5);
+  preview.innerHTML=`<div style="font-size:10px;color:#8896ab;margin-bottom:6px">Data preview (first 5 rows)</div><div style="overflow:auto"><table><thead><tr>${sliceH.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${sliceR.map(r=>`<tr>${sliceH.map(h=>`<td>${r[h]||''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  document.getElementById('sqWrap').style.display='block';
+  document.getElementById('sqBtns').innerHTML=[
+    'Who are the top performing analysts?','What is the TAT breach count by analyst?',
+    'Which analyst has the highest open cases?','Show ageing summary by month',
+    'What is the L1 vs L2 vs L3 split?','Cases closed and avg productivity by month'
+  ].map(q=>`<button onclick="sendSugg('${q.replace(/'/g,"\\'")}')" style="background:#f0f2f5;border:1px solid #e4e7ed;border-radius:6px;padding:5px 10px;color:#4a5568;font-size:11px;cursor:pointer;margin:2px;font-family:'Inter',sans-serif;transition:all 0.15s" onmouseover="this.style.background='#e8f0fe';this.style.color='#1a73e8'" onmouseout="this.style.background='#f0f2f5';this.style.color='#4a5568'">${q}</button>`).join('');
+  appendMsg('ai',`✅ Loaded **${fname}**${sheet?' (sheet: '+sheet+')':''} — ${rawData.length.toLocaleString()} cases across ${dataHeaders.length} columns.\n\nDetected: user="${CM.user}", level="${CM.level}", status="${CM.status}", created="${CM.createdDate}", lastAction="${CM.lastAction}"\n\nWhat would you like to analyze?`);
+  chatHistory=[];
+}
+function sendSugg(q){ document.getElementById('chatInput').value=q; sendChat(); }
+async function sendChat(){
+  const inp=document.getElementById('chatInput'); const msg=inp.value.trim();
+  if(!msg) return;
+  if(!rawData.length){ appendMsg('ai','⚠️ Please upload a CDR file first!'); return; }
+  inp.value=''; inp.style.height='auto';
+  appendMsg('user',msg);
+  document.getElementById('sendBtn').disabled=true;
+  showTyping();
+  const sample=[dataHeaders.join(','),...rawData.slice(0,80).map(r=>dataHeaders.map(h=>r[h]||'').join(','))].join('\n');
+  const sys=`You are a Senior AML Operations Analyst AI. CDR data: ${rawData.length} rows, ${dataHeaders.length} cols.
+Columns: ${dataHeaders.join(', ')}
+Column mapping: user="${CM.user}", level="${CM.level}", status="${CM.status}", created="${CM.createdDate}", lastAction="${CM.lastAction}", month="${CM.month}", caseId="${CM.caseId}", custType="${CM.custType}"
+Note: last_action_date_ms is NOT used. Use last_action_date only.
+Ageing = (last_action_date - created_date) in days. TAT breach = ageing > 10 days.
+% L2 to L3 = (L3 cases / (L2+L3 cases)) * 100
+Sample data (first 80 rows): ${sample}
+Give precise numbers, analyst names, business insights. Highlight risk in ⚠️. Use bullet points and **bold** for key findings.`;
+  const messages=[...chatHistory,{role:'user',content:msg}];
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||'Sorry, could not process.';
+    hideTyping(); appendMsg('ai',reply);
+    chatHistory.push({role:'user',content:msg},{role:'assistant',content:reply});
+    if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+  }catch(e){ hideTyping(); appendMsg('ai','⚠️ Connection error. Please try again.'); }
+  document.getElementById('sendBtn').disabled=false;
+}
+let typingEl=null;
+function showTyping(){
+  const msgs=document.getElementById('chatMessages');
+  typingEl=document.createElement('div'); typingEl.id='typingEl'; typingEl.style.cssText='display:flex;gap:8px';
+  typingEl.innerHTML=`<div style="width:28px;height:28px;border-radius:50%;background:#1a73e8;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🤖</div><div class="chat-bubble-ai" style="display:flex;gap:4px;align-items:center"><span style="width:6px;height:6px;background:#8896ab;border-radius:50%;animation:bounce 1.2s infinite;display:block"></span><span style="width:6px;height:6px;background:#8896ab;border-radius:50%;animation:bounce 1.2s .2s infinite;display:block"></span><span style="width:6px;height:6px;background:#8896ab;border-radius:50%;animation:bounce 1.2s .4s infinite;display:block"></span></div>`;
+  msgs.appendChild(typingEl); msgs.scrollTop=msgs.scrollHeight;
+}
+function hideTyping(){ const t=document.getElementById('typingEl'); if(t) t.remove(); }
+function appendMsg(role,text){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;gap:8px'+(role==='user'?';flex-direction:row-reverse':'');
+  const formatted=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  const avBg=role==='ai'?'#1a73e8':'#7c3aed';
+  const bubble=role==='ai'?'chat-bubble-ai':'chat-bubble-user';
+  div.innerHTML=`<div style="width:28px;height:28px;border-radius:50%;background:${avBg};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:#fff">${role==='ai'?'🤖':currentUser?.name[0]||'U'}</div><div class="${bubble}">${formatted}</div>`;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Init
+document.getElementById('loginId').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('dateBadge') && (document.getElementById('dateBadge').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}));
+</script>
+<style>@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+</body>
+</html>

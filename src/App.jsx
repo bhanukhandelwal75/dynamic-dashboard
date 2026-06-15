@@ -1,6 +1,7 @@
 
 
 import { useState, useRef } from 'react';
+import MerchantAnalyzer from './pages/MerchantAnalyzer';
 import { DataProvider, useData } from './context/DataContext';
 import LoginPage        from './pages/LoginPage';
 import Dashboard        from './pages/Dashboard';

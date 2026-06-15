@@ -7,7 +7,7 @@ import Dashboard        from './pages/Dashboard';
 import Productivity     from './pages/Productivity';
 import Ageing           from './pages/Ageing';
 import TeamView         from './pages/TeamView';
-import MerchantAnalyzer from './pages/MerchantAnalyzer';
+import MerchantAnalyzer from './pages/Merchantasgit ls-files src/pages/ | grep -i merchantnalyzer';
 import BossExtractor from './pages/BossExtractor'; // ← NEW
 import Sidebar          from './components/Sidebar';
 import Training from './pages/Training';

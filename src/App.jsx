@@ -7,7 +7,7 @@ import Dashboard        from './pages/Dashboard';
 import Productivity     from './pages/Productivity';
 import Ageing           from './pages/Ageing';
 import TeamView         from './pages/TeamView';
-import MerchantAnalyzer from './pages/Merchantanalyzer';
+import MerchantAnalyzer from './pages/MerchantAnalyzer';
 import BossExtractor from './pages/BossExtractor'; // ← NEW
 import Sidebar          from './components/Sidebar';
 import Training from './pages/Training';

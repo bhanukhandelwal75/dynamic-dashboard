@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BOSS Risk Category Fetcher</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0b0e13;
+    --surface: #131720;
+    --border: #1f2635;
+    --accent: #00e5a0;
+    --accent2: #0077ff;
+    --danger: #ff4757;
+    --warn: #ffa502;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card: #161c28;
+  }
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+  }
+ 
+  /* Grid noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+ 
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 760px;
+  }
+ 
+  /* ---- Header ---- */
+  header {
+    margin-bottom: 40px;
+    border-left: 3px solid var(--accent);
+    padding-left: 16px;
+  }
+  header .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+ 
+  /* ---- Card ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+ 
+  /* ---- Form elements ---- */
+  .field { margin-bottom: 16px; }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,0.08);
+  }
+  input::placeholder { color: var(--muted); opacity: 0.5; }
+ 
+  /* ---- Cookie row ---- */
+  .cookie-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media(max-width: 520px) { .cookie-row { grid-template-columns: 1fr; } }
+ 
+  /* ---- Upload zone ---- */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .upload-zone:hover, .upload-zone.dragging {
+    border-color: var(--accent);
+    background: rgba(0,229,160,0.04);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .upload-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  .upload-zone .upload-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .upload-zone .upload-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .file-selected {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 10px;
+  }
+ 
+  /* ---- Run button ---- */
+  .run-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .run-btn:hover { opacity: 0.9; }
+  .run-btn:active { transform: scale(0.99); }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+ 
+  /* ---- Progress ---- */
+  .progress-wrap {
+    display: none;
+    margin-bottom: 20px;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  .progress-stats {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .progress-stats span { color: var(--accent); font-weight: 600; }
+ 
+  /* ---- Log ---- */
+  .log-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    height: 160px;
+    overflow-y: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin-top: 14px;
+  }
+  .log-box .log-ok { color: var(--accent); }
+  .log-box .log-err { color: var(--danger); }
+  .log-box .log-warn { color: var(--warn); }
+  .log-box .log-info { color: var(--accent2); }
+ 
+  /* ---- Results table ---- */
+  .results-section { display: none; }
+  .results-section.visible { display: block; }
+ 
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--surface);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td {
+    padding: 11px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+ 
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .badge-high   { background: rgba(255,71,87,0.15);  color: #ff4757; border: 1px solid rgba(255,71,87,0.3); }
+  .badge-medium { background: rgba(255,165,2,0.15);  color: #ffa502; border: 1px solid rgba(255,165,2,0.3); }
+  .badge-low    { background: rgba(0,229,160,0.12);  color: #00e5a0; border: 1px solid rgba(0,229,160,0.3); }
+  .badge-error  { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.25); }
+ 
+  /* ---- Download ---- */
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 20px;
+    border-radius: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+  .download-btn:hover { background: rgba(0,229,160,0.08); }
+ 
+  /* ---- Summary chips ---- */
+  .summary-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .chip .chip-val {
+    font-size: 22px;
+    font-weight: 700;
+    display: block;
+    line-height: 1.2;
+  }
+  .chip .chip-lbl { color: var(--muted); font-size: 10px; letter-spacing: 1px; }
+  .chip-high .chip-val { color: var(--danger); }
+  .chip-medium .chip-val { color: var(--warn); }
+  .chip-low .chip-val { color: var(--accent); }
+  .chip-total .chip-val { color: var(--text); }
+ 
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+ 
+  <header>
+    <div class="eyebrow">Paytm Internal Tool</div>
+    <h1>BOSS Risk Category Fetcher</h1>
+    <p>Batch fetch merchant risk categories via BOSS panel API</p>
+  </header>
+ 
+  <!-- CONFIG CARD -->
+  <div class="card">
+    <div class="card-title">Session Cookies</div>
+    <div class="cookie-row">
+      <div class="field">
+        <label>BOSS_SESSION</label>
+        <input type="password" id="bossCookie" placeholder="75e5d36d-f29f-..." autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>UMP_SESSION</label>
+        <input type="password" id="umpCookie" placeholder="3968a863-a9c0-..." autocomplete="off"/>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- UPLOAD CARD -->
+  <div class="card">
+    <div class="card-title">CSV Upload</div>
+    <div class="upload-zone" id="dropZone">
+      <input type="file" id="csvFile" accept=".csv"/>
+      <div class="upload-icon">📂</div>
+      <div class="upload-label">Drop your CSV here or click to browse</div>
+      <div class="upload-sub">Must contain a MID column</div>
+    </div>
+    <div id="fileInfo" style="display:none">
+      <div class="file-selected" id="fileName">— no file —</div>
+    </div>
+  </div>
+ 
+  <!-- RUN -->
+  <button class="run-btn" id="runBtn" disabled>
+    <span id="runIcon">▶</span>
+    <span id="runLabel">RUN BATCH FETCH</span>
+  </button>
+ 
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-stats">
+      <div>Processing <span id="progCurrent">0</span> / <span id="progTotal">0</span></div>
+      <div id="progPct">0%</div>
+    </div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+ 
+  <!-- RESULTS -->
+  <div class="results-section" id="resultsSection">
+    <div class="card">
+      <div class="card-title">Results</div>
+      <div class="summary-row" id="summaryRow"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>MID</th>
+              <th>Risk Category</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+      <a class="download-btn" id="downloadBtn" style="display:none">
+        ⬇ Download CSV
+      </a>
+    </div>
+  </div>
+ 
+</div>
+ 
+<script>
+// ------- State -------
+let mids = [];
+let results = [];
+ 
+// ------- File handling -------
+const fileInput = document.getElementById('csvFile');
+const dropZone  = document.getElementById('dropZone');
+ 
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadFile(fileInput.files[0]);
+});
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragging'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragging');
+  if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+ 
+function loadFile(file) {
+  document.getElementById('fileInfo').style.display = 'block';
+  document.getElementById('fileName').textContent = '📄 ' + file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    mids = parseCSV(text);
+    log(`Loaded ${mids.length} MIDs from ${file.name}`, 'info');
+    updateRunBtn();
+  };
+  reader.readAsText(file);
+}
+ 
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (!lines.length) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  const midIdx = headers.findIndex(h => h.toLowerCase() === 'mid');
+  if (midIdx === -1) { log('Error: No MID column found!', 'err'); return []; }
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',');
+    const v = (cols[midIdx] || '').trim();
+    if (v) out.push(v);
+  }
+  return out;
+}
+ 
+// ------- Button state -------
+function updateRunBtn() {
+  const boss = document.getElementById('bossCookie').value.trim();
+  const ump  = document.getElementById('umpCookie').value.trim();
+  document.getElementById('runBtn').disabled = !(boss && ump && mids.length > 0);
+}
+['bossCookie','umpCookie'].forEach(id =>
+  document.getElementById(id).addEventListener('input', updateRunBtn)
+);
+ 
+// ------- Logging -------
+function log(msg, type = 'info') {
+  const box = document.getElementById('logBox');
+  const line = document.createElement('div');
+  line.className = `log-${type}`;
+  const ts = new Date().toLocaleTimeString('en-GB', {hour12: false});
+  line.textContent = `[${ts}] ${msg}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+ 
+// ------- Progress -------
+function setProgress(current, total) {
+  const pct = total ? Math.round(current / total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progCurrent').textContent = current;
+  document.getElementById('progTotal').textContent = total;
+  document.getElementById('progPct').textContent = pct + '%';
+}
+ 
+// ------- API call -------
+async function fetchRisk(mid, bossCookie, umpCookie) {
+  const url = `https://boss.paytm.com/api/v1/merchant/${mid}/profileDetails`;
+  try {
+    // Note: direct cookie injection via fetch is browser-restricted.
+    // This calls the API with credentials. For cross-origin, use a local proxy.
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'User-Agent': 'Mozilla/5.0',
+        'Cookie': `BOSS_SESSION=${bossCookie}; UMP_SESSION=${umpCookie}`
+      },
+      credentials: 'include'
+    });
+    if (!res.ok) return `HTTP ${res.status}`;
+    const json = await res.json();
+    if (!json || !json.length) return 'No Profile Data';
+    const data = json[0];
+    const merchant = data.merchantInfo || {};
+    return (
+      merchant.riskCategory ||
+      data.riskCategory ||
+      (merchant.riskDetails || {}).riskCategory ||
+      'Medium'
+    );
+  } catch (e) {
+    return `Error: ${e.message}`;
+  }
+}
+ 
+// ------- Run -------
+document.getElementById('runBtn').addEventListener('click', async () => {
+  const bossCookie = document.getElementById('bossCookie').value.trim();
+  const umpCookie  = document.getElementById('umpCookie').value.trim();
+ 
+  if (!bossCookie || !umpCookie || !mids.length) return;
+ 
+  // UI setup
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('runLabel').textContent = 'RUNNING…';
+  document.getElementById('runIcon').textContent = '⏳';
+  document.getElementById('progressWrap').classList.add('visible');
+  document.getElementById('resultsSection').classList.remove('visible');
+  document.getElementById('logBox').innerHTML = '';
+  results = [];
+ 
+  log(`Starting batch for ${mids.length} MIDs`, 'info');
+ 
+  for (let i = 0; i < mids.length; i++) {
+    const mid = mids[i];
+    setProgress(i + 1, mids.length);
+    log(`Fetching MID: ${mid} …`, 'info');
+ 
+    const risk = await fetchRisk(mid, bossCookie, umpCookie);
+    results.push({ MID: mid, 'Risk Category': risk });
+ 
+    const isError = risk.startsWith('HTTP') || risk.startsWith('Error');
+    log(`  → ${mid}: ${risk}`, isError ? 'err' : 'ok');
+ 
+    // 500ms delay like original script
+    if (i < mids.length - 1) await new Promise(r => setTimeout(r, 500));
+  }
+ 
+  log(`Done. ${results.length} results.`, 'ok');
+  renderResults(results);
+ 
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('runLabel').textContent = 'RUN BATCH FETCH';
+  document.getElementById('runIcon').textContent = '▶';
+});
+ 
+// ------- Render results -------
+function badgeClass(risk) {
+  if (!risk) return 'badge-error';
+  const r = risk.toLowerCase();
+  if (r === 'high') return 'badge-high';
+  if (r === 'medium') return 'badge-medium';
+  if (r === 'low') return 'badge-low';
+  return 'badge-error';
+}
+ 
+function renderResults(data) {
+  const section = document.getElementById('resultsSection');
+  section.classList.add('visible');
+ 
+  // Summary
+  const counts = { High: 0, Medium: 0, Low: 0, Other: 0 };
+  data.forEach(r => {
+    const k = r['Risk Category'];
+    if (k === 'High') counts.High++;
+    else if (k === 'Medium') counts.Medium++;
+    else if (k === 'Low') counts.Low++;
+    else counts.Other++;
+  });
+ 
+  document.getElementById('summaryRow').innerHTML = `
+    <div class="chip chip-total"><span class="chip-val">${data.length}</span><span class="chip-lbl">TOTAL</span></div>
+    <div class="chip chip-high"><span class="chip-val">${counts.High}</span><span class="chip-lbl">HIGH</span></div>
+    <div class="chip chip-medium"><span class="chip-val">${counts.Medium}</span><span class="chip-lbl">MEDIUM</span></div>
+    <div class="chip chip-low"><span class="chip-val">${counts.Low}</span><span class="chip-lbl">LOW</span></div>
+    <div class="chip"><span class="chip-val" style="color:var(--muted)">${counts.Other}</span><span class="chip-lbl">OTHER/ERR</span></div>
+  `;
+ 
+  // Table
+  const tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = data.map((r, i) => `
+    <tr>
+      <td style="color:var(--muted)">${i + 1}</td>
+      <td>${r.MID}</td>
+      <td><span class="badge ${badgeClass(r['Risk Category'])}">${r['Risk Category']}</span></td>
+    </tr>
+  `).join('');
+ 
+  // Download
+  const csv = ['MID,Risk Category', ...data.map(r => `${r.MID},${r['Risk Category']}`)].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const btn = document.getElementById('downloadBtn');
+  btn.href = url;
+  btn.download = `risk_output_${Date.now()}.csv`;
+  btn.style.display = 'inline-flex';
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

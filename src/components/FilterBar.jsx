@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useData } from '../context/DataContext';
 
-export default function FilterBar() {
+export default function FilterBar({ show = ['month', 'user', 'level', 'status']}) {
   const { rawData, filteredData, CM, filters, applyFilters, resetFilters } = useData();
 
   // Unique month values
@@ -34,37 +34,97 @@ export default function FilterBar() {
     <div className="filters-bar">
       <span className="filter-label">🔍 Filter</span>
 
-      <select className="filter-select" value={filters.month} onChange={(e) => handleChange('month', e.target.value)}>
-        <option value="">All Months</option>
-        {months.map((m) => <option key={m} value={m}>{m}</option>)}
-      </select>
+      {show.includes('month') && (
+        <>
+          <select className="filter-select" value={filters.month} onChange={(e) => handleChange('month', e.target.value)}>
+            <option value="">All Months</option>
+            {months.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <div className="filter-div" />
+        </>
+      )}
 
-      <div className="filter-div" />
+      {show.includes('user') && (
+        <>
+          <select className="filter-select" value={filters.user} onChange={(e) => handleChange('user', e.target.value)}>
+            <option value="">All Analysts</option>
+            {users.map((u) => <option key={u} value={u}>{u}</option>)}
+          </select>
+          <div className="filter-div" />
+        </>
+      )}
 
-      <select className="filter-select" value={filters.user} onChange={(e) => handleChange('user', e.target.value)}>
-        <option value="">All Analysts</option>
-        {users.map((u) => <option key={u} value={u}>{u}</option>)}
-      </select>
+      {show.includes('level') && (
+        <>
+          <select className="filter-select" value={filters.level} onChange={(e) => handleChange('level', e.target.value)}>
+            <option value="">All Levels</option>
+            {['L1', 'L2', 'L3'].map((l) => <option key={l} value={l}>{l}</option>)}
+          </select>
+          <div className="filter-div" />
+        </>
+      )}
 
-      <div className="filter-div" />
-
-      <select className="filter-select" value={filters.level} onChange={(e) => handleChange('level', e.target.value)}>
-        <option value="">All Levels</option>
-        {['L1', 'L2', 'L3'].map((l) => <option key={l} value={l}>{l}</option>)}
-      </select>
-
-      <div className="filter-div" />
-
-      <select className="filter-select" value={filters.status} onChange={(e) => handleChange('status', e.target.value)}>
-        <option value="">All Status</option>
-        {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-      </select>
+      {show.includes('status') && (
+        <select className="filter-select" value={filters.status} onChange={(e) => handleChange('status', e.target.value)}>
+          <option value="">All Status</option>
+          {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      )}
 
       <button className="reset-btn" onClick={resetFilters}>↺ Reset</button>
-
       <span className="filter-count">
         {filteredData.length.toLocaleString()} / {rawData.length.toLocaleString()} cases
       </span>
     </div>
   );
-}
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+//   return (
+//     <div className="filters-bar">
+//       <span className="filter-label">🔍 Filter</span>
+
+//       <select className="filter-select" value={filters.month} onChange={(e) => handleChange('month', e.target.value)}>
+//         <option value="">All Months</option>
+//         {months.map((m) => <option key={m} value={m}>{m}</option>)}
+//       </select>
+
+//       <div className="filter-div" />
+
+//       <select className="filter-select" value={filters.user} onChange={(e) => handleChange('user', e.target.value)}>
+//         <option value="">All Analysts</option>
+//         {users.map((u) => <option key={u} value={u}>{u}</option>)}
+//       </select>
+
+//       <div className="filter-div" />
+
+//       <select className="filter-select" value={filters.level} onChange={(e) => handleChange('level', e.target.value)}>
+//         <option value="">All Levels</option>
+//         {['L1', 'L2', 'L3'].map((l) => <option key={l} value={l}>{l}</option>)}
+//       </select>
+
+//       <div className="filter-div" />
+
+//       <select className="filter-select" value={filters.status} onChange={(e) => handleChange('status', e.target.value)}>
+//         <option value="">All Status</option>
+//         {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+//       </select>
+
+//       <button className="reset-btn" onClick={resetFilters}>↺ Reset</button>
+
+//       <span className="filter-count">
+//         {filteredData.length.toLocaleString()} / {rawData.length.toLocaleString()} cases
+//       </span>
+//     </div>
+//   );
+// }

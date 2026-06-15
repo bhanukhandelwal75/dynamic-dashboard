@@ -40,7 +40,7 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
 /* ═══ LOGIN ═══ */
-.login-screen {
+/* .login-screen {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -111,8 +111,164 @@ body {
   background: none;
   border: none;
   outline: none;
+} */
+
+
+
+
+
+
+
+
+
+
+
+.login-screen {
+  /* This forces the screen to be full width/height of the browser */
+  position: absolute; 
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  
+  /* This perfectly centers the card inside */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  z-index: 9999; /* Ensures nothing else overlaps it */
 }
 
+.login-card {
+  background: var(--surface);
+  width: 100%;
+  max-width: 550px; /* Increased from 480px to make it bigger */
+  padding: 60px 50px; /* Increased padding for a larger, roomier feel */
+  border: 1px solid var(--border);
+  border-radius: 12px; /* Slightly rounder edges look better on large cards */
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08); /* Adds a soft shadow to make it pop */
+  box-sizing: border-box;
+}
+.login-header {
+  margin-bottom: 30px;
+}
+
+.login-header h1 {
+  font-size: 32px;
+  color: var(--text);
+  margin: 0 0 5px 0;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.sub-text {
+  color: #55b6eb; /* Matches the light blue in your screenshot */
+  font-size: 18px;
+}
+
+.input-group {
+  margin-bottom: 25px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  background: var(--surface);
+  transition: all 0.2s;
+}
+
+.input-group input::placeholder {
+  color: var(--text3);
+}
+
+.input-group input:focus {
+  border-color: #55b6eb; 
+}
+
+/* Error state mapping to your red token */
+.input-group input.input-error {
+  border-color: var(--red); 
+}
+
+.error-text {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.pass-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pass-eye {
+  position: absolute;
+  right: 15px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+  transition: color 0.2s;
+}
+
+.pass-eye:hover {
+  color: var(--text2);
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.sign-in-btn {
+  background-color: #A9DDF6; /* Matches the screenshot exactly */
+  color: var(--surface);
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.2s ease;
+}
+
+.sign-in-btn:hover {
+  background-color: #92CEE9;
+}
+
+.login-footer {
+  font-size: 14px;
+  color: var(--text2);
+  margin-top: 10px;
+}
+
+.link-text {
+  color: #55b6eb;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.link-text:hover {
+  opacity: 0.8;
+}
 /* ═══ APP LAYOUT ═══ */
 .layout { display: flex; min-height: 100vh; }
 
@@ -417,4 +573,28 @@ tbody tr:hover td { background: #f7f9fc; }
 .export-content {
   /* This wrapper is what gets captured by html2canvas */
   background: var(--bg);
+}
+
+
+.export-content,
+.export-content .page,
+.export-content * {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+
+
+
+
+.login-logo {
+  position: absolute;
+  top: 15px;
+  left: 50px;
+}
+
+.login-logo img {
+  height:  130px; /* adjust size as needed */
 }

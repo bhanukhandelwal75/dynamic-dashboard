@@ -12,7 +12,7 @@ export default function Sidebar({ activePage, onNavigate }) {
     { id: 'boss-extractor',      icon: '🏦', label: 'Boss Extractor' },
     { id: 'training',            icon: '🎓', label: 'AML Training' },
     { id: 'name-screening',      icon: '🔎', label: 'Name Screening' },
-    { id: 'qc-sampling',         icon: '✅', label: 'QC Sampling' },
+    //{ id: 'qc-sampling',         icon: '✅', label: 'QC Sampling' },
     { id: 'mid-reconciliation',  icon: '🔄', label: 'MID Reconciliation' },
     { id: 'jocata-extractor',    icon: '⚡', label: 'Jocata Extractor' },
     { id: 'rule-engine',         icon: '🔧', label: 'Rule Engine' },

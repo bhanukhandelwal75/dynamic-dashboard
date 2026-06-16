@@ -9,7 +9,7 @@ export default function Sidebar({ activePage, onNavigate }) {
     { id: 'ageing',              icon: '⏱', label: 'Ageing Analysis' },
     { id: 'team',                icon: '👥', label: 'Team View' },
     { id: 'analyzer',            icon: '📝', label: 'L3 Comment Analyzer' },
-    { id: 'boss-extractor',      icon: '🏦', label: 'Boss Extractor' },
+    //{ id: 'boss-extractor',      icon: '🏦', label: 'Boss Extractor' },
     { id: 'training',            icon: '🎓', label: 'AML Training' },
     { id: 'name-screening',      icon: '🔎', label: 'Name Screening' },
     //{ id: 'qc-sampling',         icon: '✅', label: 'QC Sampling' },

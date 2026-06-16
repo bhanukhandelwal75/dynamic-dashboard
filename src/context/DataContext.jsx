@@ -515,6 +515,225 @@
 
 
 
+// import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+// import * as XLSX from 'xlsx';
+// import { detectCols, enrichRow, splitCSVLine } from '../utils/dataUtils';
+
+// const DataContext = createContext(null);
+
+// const SERVER = 'http://localhost:3001';
+
+// // ── Users Configuration ──────────────────────────────────────────────────
+// const USERS = {
+//   deepa: { password: 'deepa123', name: 'Deepa',       role: 'Cheif Principal Officer', email: 'deepa1.pandey@paytmpayments.com'  },
+//   bhanu: { password: 'bhanu123', name: 'Bhanu Khandelwal', role: 'Sr. Analyst',   email: 'bhanu.khandelwal@paytmpayments.com'  },
+//   alice: { password: 'bhesh123',  name: 'Bhesh',    role: 'Sr. Analyst',   email: 'bhesh.sahu@paytmpayments.com'},
+// };
+
+// export function DataProvider({ children }) {
+//   // ── Auth State ────────────────────────────────────────────────────────────
+//   const [currentUser, setCurrentUser] = useState(() => {
+//     try {
+//       const saved = sessionStorage.getItem('aml_user');
+//       return saved ? JSON.parse(saved) : null;
+//     } catch { return null; }
+//   });
+
+//   // ── Data State ────────────────────────────────────────────────────────────
+//   const [rawData,         setRawData]         = useState([]);
+//   const [filteredData,    setFilteredData]    = useState([]);
+//   const [dataHeaders,     setDataHeaders]     = useState([]);
+//   const [CM,              setCM]              = useState({});
+//   const [workbook,        setWorkbook]        = useState(null);
+//   const [sheetNames,      setSheetNames]      = useState([]);
+//   const [activeSheet,     setActiveSheet]     = useState(0);
+//   const [fileName,        setFileName]        = useState('');
+//   const [activeSheetName, setActiveSheetName] = useState('');
+//   const [filters,         setFilters]         = useState({ month: '', user: '', level: '', status: '' });
+
+//   // ── Auth Actions ──────────────────────────────────────────────────────────
+//   const doLogin = useCallback(async (idOrEmail, pass) => {
+//     const input = idOrEmail.trim().toLowerCase();
+//     const trimmedPass = pass.trim();
+
+//     // ✅ TEST ADMIN BYPASS: Isse OTP nahi aayega
+//     if (input === 'admin' && trimmedPass === 'admin123') {
+//       const adminUser = { 
+//         name: 'Test Admin', 
+//         role: 'Administrator', 
+//         email: 'admin@test.com' 
+//       };
+//       fetch('http://localhost:5050/api/log-admin', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ email: adminUser.email }),
+//       }).catch(e => console.log("Backend offline, but logging in admin..."));
+      
+      
+//       setCurrentUser(adminUser);
+//       sessionStorage.setItem('aml_user', JSON.stringify(adminUser));
+//       return { success: true, requiresOTP: false }; // requiresOTP ko false rakha hai
+//     }
+//     // Lookup by ID or Email
+//     const u = USERS[input] || Object.values(USERS).find(user => user.email.toLowerCase() === input);
+
+//     if (!u || u.password !== pass) {
+//       return { success: false, error: 'Invalid username or password.' };
+//     }
+
+//     try {
+//       const res = await fetch(`${SERVER}/api/send-otp`, {
+//         method:  'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body:    JSON.stringify({ email: u.email }),
+//       });
+//       const data = await res.json();
+
+//       if (!data.success) return { success: false, error: data.error || 'Failed to send OTP.' };
+
+//       return {
+//         success:     true,
+//         requiresOTP: true,
+//         email:       u.email,
+//         userId:      input,
+//         user:        u,
+//       };
+//     } catch {
+//       return { success: false, error: 'Cannot reach server. Is proxy_server.cjs running?' };
+//     }
+//   }, []);
+
+//   const verifyOTP = useCallback(async (email, otp, user) => {
+//     try {
+//       const res = await fetch(`${SERVER}/api/verify-otp`, {
+//         method:  'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body:    JSON.stringify({ email, otp }),
+//       });
+//       const data = await res.json();
+
+//       if (data.success) {
+//         setCurrentUser(user);
+//         sessionStorage.setItem('aml_user', JSON.stringify(user));
+//         return { success: true };
+//       }
+//       return { success: false, error: data.error || 'Invalid OTP.' };
+//     } catch {
+//       return { success: false, error: 'Cannot reach server.' };
+//     }
+//   }, []);
+
+//   const doLogout = useCallback(() => {
+//     sessionStorage.removeItem('aml_user');
+//     setCurrentUser(null);
+//     setRawData([]);
+//     setFilteredData([]);
+//     setFileName('');
+//   }, []);
+
+//   // ── Data Processing Logic ────────────────────────────────────────────────
+//   const processData = useCallback((rows, headers, fname, sheetName) => {
+//     const cm = detectCols(headers);
+//     const enriched = rows.map((r) => enrichRow(r, cm));
+//     setDataHeaders(headers);
+//     setCM(cm);
+//     setRawData(enriched);
+//     setFilteredData(enriched);
+//     setFileName(fname);
+//     setActiveSheetName(sheetName || '');
+//   }, []);
+
+//   const readCSV = useCallback((file) => {
+//     const reader = new FileReader();
+//     reader.onload = (e) => {
+//       const text = e.target.result;
+//       const lines = text.trim().split('\n').filter((l) => l.trim());
+//       if (!lines.length) return;
+//       const headers = lines[0].split(',').map((h) => h.trim().replace(/"/g, ''));
+//       const rows = lines.slice(1).map((l) => {
+//         const vals = splitCSVLine(l);
+//         return headers.reduce((o, h, i) => {
+//           o[h] = (vals[i] || '').replace(/"/g, '').trim();
+//           return o;
+//         }, {});
+//       });
+//       processData(rows, headers, file.name, null);
+//     };
+//     reader.readAsText(file);
+//   }, [processData]);
+
+//   const loadSheetByIdx = useCallback((wb, idx, fname) => {
+//     const sn = wb.SheetNames[idx];
+//     const sh = wb.Sheets[sn];
+//     const json = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '' });
+//     if (!json || json.length < 1) return;
+//     const headers = json[0].map((h) => String(h || '').trim()).filter((h) => h);
+//     const rows = json.slice(1).map((r) =>
+//       headers.reduce((o, h, i) => {
+//         o[h] = String(r[i] === undefined || r[i] === null ? '' : r[i]).trim();
+//         return o;
+//       }, {})
+//     );
+//     setActiveSheet(idx);
+//     processData(rows, headers, fname, sn);
+//   }, [processData]);
+
+//   const handleUpload = useCallback((file) => {
+//     if (!file) return;
+//     const n = file.name.toLowerCase();
+//     if (n.endsWith('.csv')) {
+//       readCSV(file);
+//     } else if (n.endsWith('.xls') || n.endsWith('.xlsx')) {
+//       const reader = new FileReader();
+//       reader.onload = (e) => {
+//         const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+//         setWorkbook(wb);
+//         setSheetNames(wb.SheetNames);
+//         loadSheetByIdx(wb, 0, file.name);
+//       };
+//       reader.readAsArrayBuffer(file);
+//     } else {
+//       alert('Please upload CSV, XLS, or XLSX');
+//     }
+//   }, [readCSV, loadSheetByIdx]);
+
+//   const switchSheet = useCallback((idx) => {
+//     if (workbook) loadSheetByIdx(workbook, idx, fileName);
+//   }, [workbook, fileName, loadSheetByIdx]);
+
+//   // ── Value ─────────────────────────────────────────────────────────────────
+//   return (
+//     <DataContext.Provider value={{
+//       currentUser, doLogin, verifyOTP, doLogout,
+//       rawData, filteredData, dataHeaders, CM,
+//       fileName, activeSheetName,
+//       workbook, sheetNames, activeSheet, switchSheet,
+//       handleUpload,
+//       filters, setFilters, setFilteredData // Exporting these for the Dashboard
+//     }}>
+//       {children}
+//     </DataContext.Provider>
+//   );
+// }
+
+// export function useData() {
+//   const context = useContext(DataContext);
+//   if (!context) throw new Error("useData must be used within DataProvider");
+//   return context;
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { detectCols, enrichRow, splitCSVLine } from '../utils/dataUtils';
@@ -556,24 +775,24 @@ export function DataProvider({ children }) {
     const input = idOrEmail.trim().toLowerCase();
     const trimmedPass = pass.trim();
 
-    // ✅ TEST ADMIN BYPASS: Isse OTP nahi aayega
+    // ✅ TEST ADMIN BYPASS
     if (input === 'admin' && trimmedPass === 'admin123') {
-      const adminUser = { 
-        name: 'Test Admin', 
-        role: 'Administrator', 
-        email: 'admin@test.com' 
+      const adminUser = {
+        name: 'Test Admin',
+        role: 'Administrator',
+        email: 'admin@test.com'
       };
       fetch('http://localhost:5050/api/log-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: adminUser.email }),
       }).catch(e => console.log("Backend offline, but logging in admin..."));
-      
-      
+
       setCurrentUser(adminUser);
       sessionStorage.setItem('aml_user', JSON.stringify(adminUser));
-      return { success: true, requiresOTP: false }; // requiresOTP ko false rakha hai
+      return { success: true, requiresOTP: false };
     }
+
     // Lookup by ID or Email
     const u = USERS[input] || Object.values(USERS).find(user => user.email.toLowerCase() === input);
 
@@ -629,9 +848,10 @@ export function DataProvider({ children }) {
     setRawData([]);
     setFilteredData([]);
     setFileName('');
+    setFilters({ month: '', user: '', level: '', status: '' });
   }, []);
 
-  // ── Data Processing Logic ────────────────────────────────────────────────
+  // ── Data Processing Logic ─────────────────────────────────────────────────
   const processData = useCallback((rows, headers, fname, sheetName) => {
     const cm = detectCols(headers);
     const enriched = rows.map((r) => enrichRow(r, cm));
@@ -639,6 +859,7 @@ export function DataProvider({ children }) {
     setCM(cm);
     setRawData(enriched);
     setFilteredData(enriched);
+    setFilters({ month: '', user: '', level: '', status: '' });
     setFileName(fname);
     setActiveSheetName(sheetName || '');
   }, []);
@@ -701,6 +922,42 @@ export function DataProvider({ children }) {
     if (workbook) loadSheetByIdx(workbook, idx, fileName);
   }, [workbook, fileName, loadSheetByIdx]);
 
+  // ── Apply Filters ─────────────────────────────────────────────────────────
+  const applyFilters = useCallback((newFilters) => {
+    setFilters(newFilters);
+    let result = rawData;
+
+    if (newFilters.month) {
+      result = result.filter((r) => {
+        const mk = CM.month
+          ? (r[CM.month] || '')
+          : r._created
+          ? r._created.toISOString().slice(0, 7)
+          : '';
+        return mk === newFilters.month;
+      });
+    }
+
+    if (newFilters.user) {
+      result = result.filter((r) => CM.user && r[CM.user] === newFilters.user);
+    }
+
+    if (newFilters.level) {
+      result = result.filter((r) => r._level === newFilters.level);
+    }
+
+    if (newFilters.status) {
+      result = result.filter((r) => CM.status && r[CM.status] === newFilters.status);
+    }
+
+    setFilteredData(result);
+  }, [rawData, CM]);
+
+  const resetFilters = useCallback(() => {
+    setFilters({ month: '', user: '', level: '', status: '' });
+    setFilteredData(rawData);
+  }, [rawData]);
+
   // ── Value ─────────────────────────────────────────────────────────────────
   return (
     <DataContext.Provider value={{
@@ -709,7 +966,9 @@ export function DataProvider({ children }) {
       fileName, activeSheetName,
       workbook, sheetNames, activeSheet, switchSheet,
       handleUpload,
-      filters, setFilters, setFilteredData // Exporting these for the Dashboard
+      filters, setFilters, setFilteredData,
+      applyFilters,
+      resetFilters,
     }}>
       {children}
     </DataContext.Provider>

@@ -1,25 +1,21 @@
-
-
 import { useState, useRef } from 'react';
+import './index.css';
+import MerchantAnalyzer from  './pages/MerchantAnalyzer';
 import { DataProvider, useData } from './context/DataContext';
 import LoginPage        from './pages/LoginPage';
 import Dashboard        from './pages/Dashboard';
 import Productivity     from './pages/Productivity';
 import Ageing           from './pages/Ageing';
 import TeamView         from './pages/TeamView';
-import MerchantAnalyzer from './pages/Merchantanalyzer';
-import BossExtractor from './pages/BossExtractor'; // ← NEW
+import BossExtractor    from './pages/BossExtractor';
 import Sidebar          from './components/Sidebar';
-import Training from './pages/Training';
-import NameScreening from './pages/NameScreening';
-import QCSampling    from './pages/QCSampling';
+import Training         from './pages/Training';
+import NameScreening    from './pages/NameScreening';
+import QCSampling       from './pages/QCSampling';
 import MIDReconciliation from './pages/MIDReconciliation';
-import JocataExtractor from './pages/JocataExtractor';
-import RuleEngine from './pages/RuleEngine';
-
-// renderPage() mein:
-
-import './index.css';
+import JocataExtractor  from './pages/JocataExtractor';
+import RuleEngine       from './pages/RuleEngine';
+import QCChecklistAnalyzer from './pages/QCChecklistAnalyzer';
  
 function AppInner() {
   const { currentUser, handleUpload } = useData();
@@ -44,9 +40,7 @@ function AppInner() {
       case 'mid-reconciliation': return <MIDReconciliation />;
       case 'jocata-extractor': return <JocataExtractor />;
       case 'rule-engine': return <RuleEngine />;
-
-
-                                  // ← NEW
+      case 'qc-analyzer': return <QCChecklistAnalyzer />;
       default:                  return <Dashboard        onUploadClick={triggerUpload} />;
     }
   };

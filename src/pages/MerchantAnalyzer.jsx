@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
-import './merchantAnalyzer.css';
+import './MerchantAnalyzer.css';
  
 // ─── helpers ────────────────────────────────────────────────────────────────
 function nk(k) { return k.trim().toLowerCase().replace(/[\s_\-\/]+/g, ''); }
